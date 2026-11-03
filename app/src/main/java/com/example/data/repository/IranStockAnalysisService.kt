@@ -53,14 +53,12 @@ class IranStockAnalysisService(private val context: Context) {
             )
 
             val fundamental = fundamentalService.fetchFundamentalData(stockData.insCode)
-            
-            // دریافت و تحلیل پول هوشمند
             val smartMoneyList = smartMoneyService.fetchSmartMoneyData(stockData.insCode)
             val smartMoneyText = smartMoneyService.analyzeSmartMoney(smartMoneyList)
 
             return@withContext FullAnalysisResult(technicalResult, fundamental, smartMoneyText)
         } catch (e: Exception) {
-            Log.e("AnalysisService", "Error: ${e.message}", e)
+            Log.e("AnalysisService", "Error analyzing $stockName: ${e.message}", e)
             return@withContext null
         }
     }
