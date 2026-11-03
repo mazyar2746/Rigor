@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.SignalType
 import com.example.data.model.TechnicalAnalysisResult
 import com.example.data.repository.IranStockAnalysisService
+import com.example.engine.SignalInterpreter
 import com.example.ui.theme.RigourBackground
 import kotlinx.coroutines.launch
 
@@ -82,6 +83,9 @@ fun IranStockDetailScreen(
                     Text(text = errorMsg!!, color = Color.Red, fontSize = 16.sp)
                 }
             } else if (result != null) {
+                val finalSignal = SignalInterpreter.getFinalSignal(result!!)
+                val reasoning = SignalInterpreter.getReasoningText(result!!)
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -100,36 +104,38 @@ fun IranStockDetailScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "قیمت فعلی: ${result!!.currentPrice}",
+                                text = "قیمت فعلی: ${String.format("%.2f", result!!.currentPrice)}",
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(12.dp))
-                            SignalBadge(signal = result!!.rsiSignal)
+                            SignalBadge(signal = finalSignal)
                         }
                     }
 
-                    // کارت RSI
-                    AnalysisCard(
-                        title = "RSI (قدرت نسبی)",
-                        value = result!!.rsi.toString(),
-                        description = result!!.rsiDescription
-                    )
-
-                    // کارت MACD
-                    AnalysisCard(
-                        title = "MACD",
-                        value = result!!.macdHistogram.toString(),
-                        description = result!!.macdDescription
-                    )
-
-                    // کارت بولینگر
-                    AnalysisCard(
-                        title = "Bollinger Bands",
-                        value = "بالا: ${result!!.bbUpper} / پایین: ${result!!.bbLower}",
-                        description = "میانگین: ${result!!.bbMiddle}"
-                    )
+                    // کارت منطق و دلیل تصمیم‌گیری
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "🧠 منطق تحلیل و تصمیم‌گیری",
+                                color = Color(0xFF00BCD4),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = reasoning,
+                                color = Color(0xFFE2E8F0),
+                                fontSize = 14.sp,
+                                lineHeight = 22.sp
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -141,7 +147,7 @@ fun SignalBadge(signal: SignalType) {
     val (text, color) = when (signal) {
         SignalType.STRONG_BUY -> "خرید قوی" to Color(0xFF22C55E)
         SignalType.BUY -> "خرید" to Color(0xFF86EFAC)
-        SignalType.NEUTRAL -> "خنثی" to Color(0xFFEAB308)
+        SignalType.NEUTRAL -> "خنثی / صبر کنید" to Color(0xFFEAB308)
         SignalType.SELL -> "فروش" to Color(0xFFFCA5A5)
         SignalType.STRONG_SELL -> "فروش قوی" to Color(0xFFEF4444)
     }
@@ -151,22 +157,5 @@ fun SignalBadge(signal: SignalType) {
             .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
         Text(text = text, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-    }
-}
-
-@Composable
-fun AnalysisCard(title: String, value: String, description: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = title, color = Color(0xFF00BCD4), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = value, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = description, color = Color(0xFF94A3B8), fontSize = 14.sp)
-        }
     }
 }
