@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.SignalType
-import com.example.data.model.TechnicalAnalysisResult
+import com.example.data.repository.FullAnalysisResult
 import com.example.data.repository.IranStockAnalysisService
 import com.example.engine.SignalInterpreter
 import com.example.i18n.Language
@@ -33,7 +33,7 @@ fun IranStockDetailScreen(
     lang: Language = Language.PERSIAN
 ) {
     val context = LocalContext.current
-    var result by remember { mutableStateOf<TechnicalAnalysisResult?>(null) }
+    var result by remember { mutableStateOf<FullAnalysisResult?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -86,8 +86,10 @@ fun IranStockDetailScreen(
                     Text(text = errorMsg!!, color = Color.Red, fontSize = 16.sp)
                 }
             } else if (result != null) {
-                val finalSignal = SignalInterpreter.getFinalSignal(result!!)
-                val reasoning = SignalInterpreter.getReasoningText(result!!, lang)
+                val tech = result!!.technical
+                val fund = result!!.fundamental
+                val finalSignal = SignalInterpreter.getFinalSignal(tech)
+                val reasoning = SignalInterpreter.getReasoningText(tech, lang)
                 val signalLabel = SignalInterpreter.getSignalLabel(finalSignal, lang)
 
                 Column(
@@ -97,6 +99,7 @@ fun IranStockDetailScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // کارت قیمت و سیگنال
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
@@ -107,7 +110,7 @@ fun IranStockDetailScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "${StringsDictionary.get("iran_stock_price", lang)}: ${String.format("%.2f", result!!.currentPrice)}",
+                                text = "${StringsDictionary.get("iran_stock_price", lang)}: ${String.format("%,.0f", tech.currentPrice)}",
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
@@ -117,6 +120,46 @@ fun IranStockDetailScreen(
                         }
                     }
 
+                    // کارت اطلاعات بنیادی
+                    if (fund != null) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "📊 اطلاعات بنیادی",
+                                    color = Color(0xFF00BCD4),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                fund.sectorName?.let {
+                                    InfoRow("صنعت", it)
+                                }
+                                fund.estimatedEPS?.let {
+                                    InfoRow("EPS تخمینی", "${String.format("%,.0f", it)} ریال")
+                                }
+                                fund.sectorPE?.let {
+                                    InfoRow("P/E صنعت", String.format("%.2f", it))
+                                }
+                                fund.weekLow?.let { low ->
+                                    fund.weekHigh?.let { high ->
+                                        InfoRow("محدوده هفته", "${String.format("%,.0f", low)} - ${String.format("%,.0f", high)}")
+                                    }
+                                }
+                                fund.yearLow?.let { low ->
+                                    fund.yearHigh?.let { high ->
+                                        InfoRow("محدوده سال", "${String.format("%,.0f", low)} - ${String.format("%,.0f", high)}")
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // کارت منطق تحلیل تکنیکال
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
@@ -141,6 +184,19 @@ fun IranStockDetailScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = label, color = Color(0xFF94A3B8), fontSize = 14.sp)
+        Text(text = value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
