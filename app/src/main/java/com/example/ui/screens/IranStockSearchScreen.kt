@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.data.model.StockInfo
@@ -25,12 +26,13 @@ fun IranStockSearchScreen(
     onBack: () -> Unit,
     onStockSelected: (String) -> Unit
 ) {
+    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var allSymbols by remember { mutableStateOf<List<StockInfo>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-    val repository = remember { IranStockRepository() }
+    val repository = remember { IranStockRepository(context) }
 
     LaunchedEffect(Unit) {
         scope.launch {
