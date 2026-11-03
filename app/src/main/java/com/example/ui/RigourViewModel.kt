@@ -32,6 +32,7 @@ sealed class Screen {
     object Subscription : Screen()
     object ContactUs : Screen()
     object Settings : Screen()
+    object IranStockSearch : Screen()
 }
 
 class RigourViewModel(application: Application) : AndroidViewModel(application) {
