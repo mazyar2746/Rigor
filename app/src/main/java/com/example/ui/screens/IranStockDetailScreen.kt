@@ -44,7 +44,7 @@ fun IranStockDetailScreen(
             try {
                 result = service.analyzeStock(stockName)
                 if (result == null) {
-                    errorMsg = StringsDictionary.get("iran_stock_error", lang)
+                    errorMsg = "دیتای قیمتی این نماد در دسترس نیست. احتمالاً نماد متوقف بوده یا در صف مجمع/افزایش سرمایه قرار دارد. لطفاً بعداً دوباره تلاش کنید."
                 }
             } catch (e: Exception) {
                 errorMsg = e.message
@@ -88,8 +88,8 @@ fun IranStockDetailScreen(
             } else if (result != null) {
                 val tech = result!!.technical
                 val fund = result!!.fundamental
-                val finalSignal = SignalInterpreter.getFinalSignal(tech)
-                val reasoning = SignalInterpreter.getReasoningText(tech, lang)
+                val finalSignal = SignalInterpreter.getFinalSignal(tech.rsiSignal, result!!.smartMoneyText)
+                val reasoning = SignalInterpreter.getReasoningText(tech, result!!.smartMoneyText, lang)
                 val signalLabel = SignalInterpreter.getSignalLabel(finalSignal, lang)
 
                 Column(
