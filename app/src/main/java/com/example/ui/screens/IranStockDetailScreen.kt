@@ -20,6 +20,8 @@ import com.example.data.model.SignalType
 import com.example.data.model.TechnicalAnalysisResult
 import com.example.data.repository.IranStockAnalysisService
 import com.example.engine.SignalInterpreter
+import com.example.i18n.Language
+import com.example.i18n.StringsDictionary
 import com.example.ui.theme.RigourBackground
 import kotlinx.coroutines.launch
 
@@ -27,7 +29,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun IranStockDetailScreen(
     stockName: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    lang: Language = Language.PERSIAN
 ) {
     val context = LocalContext.current
     var result by remember { mutableStateOf<TechnicalAnalysisResult?>(null) }
@@ -41,10 +44,10 @@ fun IranStockDetailScreen(
             try {
                 result = service.analyzeStock(stockName)
                 if (result == null) {
-                    errorMsg = "دیتای این نماد در دسترس نیست."
+                    errorMsg = StringsDictionary.get("iran_stock_error", lang)
                 }
             } catch (e: Exception) {
-                errorMsg = "خطا: ${e.message}"
+                errorMsg = e.message
             } finally {
                 isLoading = false
             }
@@ -54,10 +57,10 @@ fun IranStockDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("تحلیل $stockName", fontWeight = FontWeight.Bold) },
+                title = { Text("${StringsDictionary.get("iran_stock_analysis", lang)} $stockName", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "بازگشت")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -84,7 +87,8 @@ fun IranStockDetailScreen(
                 }
             } else if (result != null) {
                 val finalSignal = SignalInterpreter.getFinalSignal(result!!)
-                val reasoning = SignalInterpreter.getReasoningText(result!!)
+                val reasoning = SignalInterpreter.getReasoningText(result!!, lang)
+                val signalLabel = SignalInterpreter.getSignalLabel(finalSignal, lang)
 
                 Column(
                     modifier = Modifier
@@ -93,7 +97,6 @@ fun IranStockDetailScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // کارت قیمت و سیگنال اصلی
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
@@ -104,17 +107,16 @@ fun IranStockDetailScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "قیمت فعلی: ${String.format("%.2f", result!!.currentPrice)}",
+                                text = "${StringsDictionary.get("iran_stock_price", lang)}: ${String.format("%.2f", result!!.currentPrice)}",
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(12.dp))
-                            SignalBadge(signal = finalSignal)
+                            SignalBadge(signal = finalSignal, label = signalLabel)
                         }
                     }
 
-                    // کارت منطق و دلیل تصمیم‌گیری
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
@@ -122,7 +124,7 @@ fun IranStockDetailScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "🧠 منطق تحلیل و تصمیم‌گیری",
+                                text = "🧠 " + StringsDictionary.get("iran_stock_reasoning_title", lang),
                                 color = Color(0xFF00BCD4),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
@@ -143,19 +145,19 @@ fun IranStockDetailScreen(
 }
 
 @Composable
-fun SignalBadge(signal: SignalType) {
-    val (text, color) = when (signal) {
-        SignalType.STRONG_BUY -> "خرید قوی" to Color(0xFF22C55E)
-        SignalType.BUY -> "خرید" to Color(0xFF86EFAC)
-        SignalType.NEUTRAL -> "خنثی / صبر کنید" to Color(0xFFEAB308)
-        SignalType.SELL -> "فروش" to Color(0xFFFCA5A5)
-        SignalType.STRONG_SELL -> "فروش قوی" to Color(0xFFEF4444)
+fun SignalBadge(signal: SignalType, label: String) {
+    val color = when (signal) {
+        SignalType.STRONG_BUY -> Color(0xFF22C55E)
+        SignalType.BUY -> Color(0xFF86EFAC)
+        SignalType.NEUTRAL -> Color(0xFFEAB308)
+        SignalType.SELL -> Color(0xFFFCA5A5)
+        SignalType.STRONG_SELL -> Color(0xFFEF4444)
     }
     Box(
         modifier = Modifier
             .background(color, RoundedCornerShape(20.dp))
             .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
-        Text(text = text, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(text = label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
     }
 }
