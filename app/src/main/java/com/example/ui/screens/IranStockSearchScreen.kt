@@ -20,6 +20,17 @@ import com.example.data.model.StockInfo
 import com.example.data.repository.IranStockRepository
 import kotlinx.coroutines.launch
 
+// تابع کمکی برای نرمال‌سازی حروف عربی و فارسی
+fun normalizePersian(text: String): String {
+    return text
+        .replace('ك', 'ک')  // کاف عربی به فارسی
+        .replace('ي', 'ی')  // ی عربی به فارسی
+        .replace('ى', 'ی')  // ی مقصوره به فارسی
+        .replace('ة', 'ه')  // تاء مربوطه به ه
+        .replace('\u200c', ' ') // نیم‌فاصله به فاصله
+        .lowercase()
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IranStockSearchScreen(
@@ -39,7 +50,7 @@ fun IranStockSearchScreen(
             try {
                 allSymbols = repository.fetchSymbolsList()
                 if (allSymbols.isEmpty()) {
-                    errorMsg = "لیست خالی است. اتصال شبکه را بررسی کنید."
+                    errorMsg = "لیست خالی است."
                 }
             } catch (e: Exception) {
                 errorMsg = "خطا: ${e.message}"
@@ -52,7 +63,10 @@ fun IranStockSearchScreen(
     val filteredSymbols = if (searchQuery.isEmpty()) {
         allSymbols
     } else {
-        allSymbols.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        val normalizedQuery = normalizePersian(searchQuery)
+        allSymbols.filter { stock ->
+            normalizePersian(stock.name).contains(normalizedQuery)
+        }
     }
 
     Scaffold(
