@@ -159,6 +159,31 @@ fun IranStockDetailScreen(
                         }
                     }
 
+                    // کارت پول هوشمند
+                    if (result!!.smartMoneyText != null) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "💰 تحلیل پول هوشمند (حقیقی/حقوقی)",
+                                    color = Color(0xFF00BCD4),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = result!!.smartMoneyText!!,
+                                    color = Color(0xFFE2E8F0),
+                                    fontSize = 14.sp,
+                                    lineHeight = 22.sp
+                                )
+                            }
+                        }
+                    }
+
                     // کارت منطق تحلیل تکنیکال
                     Card(
                         modifier = Modifier.fillMaxWidth(),

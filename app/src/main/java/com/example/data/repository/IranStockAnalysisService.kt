@@ -14,12 +14,14 @@ import kotlinx.coroutines.withContext
 
 data class FullAnalysisResult(
     val technical: TechnicalAnalysisResult,
-    val fundamental: FundamentalData?
+    val fundamental: FundamentalData?,
+    val smartMoneyText: String?
 )
 
 class IranStockAnalysisService(private val context: Context) {
     private val gson = Gson()
     private val fundamentalService = IranStockFundamentalService()
+    private val smartMoneyService = IranStockSmartMoneyService()
 
     suspend fun analyzeStock(stockName: String): FullAnalysisResult? = withContext(Dispatchers.IO) {
         try {
@@ -50,10 +52,13 @@ class IranStockAnalysisService(private val context: Context) {
                 sourceExchange = "TSETMC"
             )
 
-            // دریافت اطلاعات بنیادی
             val fundamental = fundamentalService.fetchFundamentalData(stockData.insCode)
+            
+            // دریافت و تحلیل پول هوشمند
+            val smartMoneyList = smartMoneyService.fetchSmartMoneyData(stockData.insCode)
+            val smartMoneyText = smartMoneyService.analyzeSmartMoney(smartMoneyList)
 
-            return@withContext FullAnalysisResult(technicalResult, fundamental)
+            return@withContext FullAnalysisResult(technicalResult, fundamental, smartMoneyText)
         } catch (e: Exception) {
             Log.e("AnalysisService", "Error: ${e.message}", e)
             return@withContext null
