@@ -3,6 +3,25 @@
     "insCode": "46348559193224090",
     "prices": [
       {
+        "priceChange": -110.0,
+        "priceMin": 4120.0,
+        "priceMax": 4200.0,
+        "priceYesterday": 4240.0,
+        "priceFirst": 4170.0,
+        "last": false,
+        "id": 0,
+        "insCode": "46348559193224090",
+        "dEven": 20261101,
+        "hEven": 123000,
+        "pClosing": 4120.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 4130.0,
+        "zTotTran": 22567.0,
+        "qTotTran5J": 2139604695.0,
+        "qTotCap": 8818767942000.0
+      },
+      {
         "priceChange": -70.0,
         "priceMin": 4090.0,
         "priceMax": 4330.0,
@@ -552,31 +571,31 @@
         "zTotTran": 38289.0,
         "qTotTran5J": 3581143472.0,
         "qTotCap": 11785928323720.0
-      },
-      {
-        "priceChange": -80.0,
-        "priceMin": 3210.0,
-        "priceMax": 3280.0,
-        "priceYesterday": 3300.0,
-        "priceFirst": 3210.0,
-        "last": false,
-        "id": 0,
-        "insCode": "46348559193224090",
-        "dEven": 20260920,
-        "hEven": 123000,
-        "pClosing": 3210.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 3220.0,
-        "zTotTran": 56546.0,
-        "qTotTran5J": 5563296448.0,
-        "qTotCap": 17883948678370.0
       }
     ]
   },
   "خودرو": {
     "insCode": "65883838195688438",
     "prices": [
+      {
+        "priceChange": -10.0,
+        "priceMin": 615.0,
+        "priceMax": 635.0,
+        "priceYesterday": 633.0,
+        "priceFirst": 623.0,
+        "last": false,
+        "id": 0,
+        "insCode": "65883838195688438",
+        "dEven": 20261101,
+        "hEven": 123000,
+        "pClosing": 618.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 623.0,
+        "zTotTran": 10806.0,
+        "qTotTran5J": 3409746418.0,
+        "qTotCap": 2108813638817.0
+      },
       {
         "priceChange": -16.0,
         "priceMin": 627.0,
@@ -1127,31 +1146,31 @@
         "zTotTran": 20086.0,
         "qTotTran5J": 6941718671.0,
         "qTotCap": 4762423354118.0
-      },
-      {
-        "priceChange": -21.0,
-        "priceMin": 697.0,
-        "priceMax": 697.0,
-        "priceYesterday": 718.0,
-        "priceFirst": 697.0,
-        "last": false,
-        "id": 0,
-        "insCode": "65883838195688438",
-        "dEven": 20260920,
-        "hEven": 122959,
-        "pClosing": 697.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 697.0,
-        "zTotTran": 3986.0,
-        "qTotTran5J": 1176048810.0,
-        "qTotCap": 819706020570.0
       }
     ]
   },
   "خساپا": {
     "insCode": "44891482026867833",
     "prices": [
+      {
+        "priceChange": -16.0,
+        "priceMin": 550.0,
+        "priceMax": 572.0,
+        "priceYesterday": 567.0,
+        "priceFirst": 566.0,
+        "last": false,
+        "id": 0,
+        "insCode": "44891482026867833",
+        "dEven": 20261101,
+        "hEven": 123000,
+        "pClosing": 553.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 551.0,
+        "zTotTran": 7547.0,
+        "qTotTran5J": 1978532806.0,
+        "qTotCap": 1094168076169.0
+      },
       {
         "priceChange": -15.0,
         "priceMin": 558.0,
@@ -1702,31 +1721,31 @@
         "zTotTran": 12178.0,
         "qTotTran5J": 4233203298.0,
         "qTotCap": 3031312522904.0
-      },
-      {
-        "priceChange": -15.0,
-        "priceMin": 706.0,
-        "priceMax": 720.0,
-        "priceYesterday": 727.0,
-        "priceFirst": 706.0,
-        "last": false,
-        "id": 0,
-        "insCode": "44891482026867833",
-        "dEven": 20260920,
-        "hEven": 123000,
-        "pClosing": 708.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 712.0,
-        "zTotTran": 12342.0,
-        "qTotTran5J": 6845918989.0,
-        "qTotCap": 4845967204481.0
       }
     ]
   },
   "شپنا": {
     "insCode": "7745894403636165",
     "prices": [
+      {
+        "priceChange": -370.0,
+        "priceMin": 12030.0,
+        "priceMax": 12030.0,
+        "priceYesterday": 12400.0,
+        "priceFirst": 12030.0,
+        "last": false,
+        "id": 0,
+        "insCode": "7745894403636165",
+        "dEven": 20261101,
+        "hEven": 153502,
+        "pClosing": 12030.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 12030.0,
+        "zTotTran": 24977.0,
+        "qTotTran5J": 1006884814.0,
+        "qTotCap": 12112824312420.0
+      },
       {
         "priceChange": -380.0,
         "priceMin": 12400.0,
@@ -2277,31 +2296,31 @@
         "zTotTran": 37611.0,
         "qTotTran5J": 918523463.0,
         "qTotCap": 11717769745880.0
-      },
-      {
-        "priceChange": -400.0,
-        "priceMin": 13070.0,
-        "priceMax": 13070.0,
-        "priceYesterday": 13470.0,
-        "priceFirst": 13070.0,
-        "last": false,
-        "id": 0,
-        "insCode": "7745894403636165",
-        "dEven": 20260920,
-        "hEven": 123000,
-        "pClosing": 13070.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 13070.0,
-        "zTotTran": 6076.0,
-        "qTotTran5J": 171033503.0,
-        "qTotCap": 2235407884210.0
       }
     ]
   },
   "وبملت": {
     "insCode": "778253364357513",
     "prices": [
+      {
+        "priceChange": -38.0,
+        "priceMin": 1338.0,
+        "priceMax": 1382.0,
+        "priceYesterday": 1379.0,
+        "priceFirst": 1382.0,
+        "last": false,
+        "id": 0,
+        "insCode": "778253364357513",
+        "dEven": 20261101,
+        "hEven": 123000,
+        "pClosing": 1346.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 1341.0,
+        "zTotTran": 22989.0,
+        "qTotTran5J": 4259022433.0,
+        "qTotCap": 5732492572867.0
+      },
       {
         "priceChange": -42.0,
         "priceMin": 1365.0,
@@ -2852,31 +2871,31 @@
         "zTotTran": 46069.0,
         "qTotTran5J": 9898241107.0,
         "qTotCap": 14681855077566.0
-      },
-      {
-        "priceChange": -46.0,
-        "priceMin": 1515.0,
-        "priceMax": 1515.0,
-        "priceYesterday": 1561.0,
-        "priceFirst": 1515.0,
-        "last": false,
-        "id": 0,
-        "insCode": "778253364357513",
-        "dEven": 20260920,
-        "hEven": 123000,
-        "pClosing": 1515.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 1515.0,
-        "zTotTran": 14384.0,
-        "qTotTran5J": 4609812282.0,
-        "qTotCap": 6983865607230.0
       }
     ]
   },
   "شستا": {
     "insCode": "2400322364771558",
     "prices": [
+      {
+        "priceChange": -90.0,
+        "priceMin": 3200.0,
+        "priceMax": 3210.0,
+        "priceYesterday": 3290.0,
+        "priceFirst": 3200.0,
+        "last": false,
+        "id": 0,
+        "insCode": "2400322364771558",
+        "dEven": 20261101,
+        "hEven": 123000,
+        "pClosing": 3200.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 3200.0,
+        "zTotTran": 9175.0,
+        "qTotTran5J": 883413119.0,
+        "qTotCap": 2826947244550.0
+      },
       {
         "priceChange": -100.0,
         "priceMin": 3290.0,
@@ -3427,31 +3446,31 @@
         "zTotTran": 21888.0,
         "qTotTran5J": 1954709824.0,
         "qTotCap": 7119786545270.0
-      },
-      {
-        "priceChange": -80.0,
-        "priceMin": 3550.0,
-        "priceMax": 3650.0,
-        "priceYesterday": 3650.0,
-        "priceFirst": 3550.0,
-        "last": false,
-        "id": 0,
-        "insCode": "2400322364771558",
-        "dEven": 20260920,
-        "hEven": 122959,
-        "pClosing": 3560.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 3570.0,
-        "zTotTran": 20902.0,
-        "qTotTran5J": 1951038121.0,
-        "qTotCap": 6955402055280.0
       }
     ]
   },
   "فملی": {
     "insCode": "35425587644337450",
     "prices": [
+      {
+        "priceChange": -830.0,
+        "priceMin": 26850.0,
+        "priceMax": 27320.0,
+        "priceYesterday": 27680.0,
+        "priceFirst": 26900.0,
+        "last": false,
+        "id": 0,
+        "insCode": "35425587644337450",
+        "dEven": 20261101,
+        "hEven": 153301,
+        "pClosing": 26890.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 26850.0,
+        "zTotTran": 53097.0,
+        "qTotTran5J": 713367692.0,
+        "qTotCap": 19179318768760.0
+      },
       {
         "priceChange": -850.0,
         "priceMin": 27530.0,
@@ -4002,25 +4021,6 @@
         "zTotTran": 71092.0,
         "qTotTran5J": 902033919.0,
         "qTotCap": 22461105967880.0
-      },
-      {
-        "priceChange": -780.0,
-        "priceMin": 25530.0,
-        "priceMax": 25530.0,
-        "priceYesterday": 26310.0,
-        "priceFirst": 25530.0,
-        "last": false,
-        "id": 0,
-        "insCode": "35425587644337450",
-        "dEven": 20260920,
-        "hEven": 123000,
-        "pClosing": 25530.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 25530.0,
-        "zTotTran": 12919.0,
-        "qTotTran5J": 91070007.0,
-        "qTotCap": 2325017278710.0
       }
     ]
   },
@@ -4035,6 +4035,25 @@
   "برکت": {
     "insCode": "35366681030756042",
     "prices": [
+      {
+        "priceChange": -410.0,
+        "priceMin": 13520.0,
+        "priceMax": 13520.0,
+        "priceYesterday": 13930.0,
+        "priceFirst": 13520.0,
+        "last": false,
+        "id": 0,
+        "insCode": "35366681030756042",
+        "dEven": 20261101,
+        "hEven": 122937,
+        "pClosing": 13520.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 13520.0,
+        "zTotTran": 4819.0,
+        "qTotTran5J": 218601613.0,
+        "qTotCap": 2955493807760.0
+      },
       {
         "priceChange": 0.0,
         "priceMin": 0.0,
@@ -4585,25 +4604,6 @@
         "zTotTran": 15663.0,
         "qTotTran5J": 351138392.0,
         "qTotCap": 5315469791900.0
-      },
-      {
-        "priceChange": -460.0,
-        "priceMin": 15120.0,
-        "priceMax": 15120.0,
-        "priceYesterday": 15580.0,
-        "priceFirst": 15120.0,
-        "last": false,
-        "id": 0,
-        "insCode": "35366681030756042",
-        "dEven": 20260920,
-        "hEven": 122959,
-        "pClosing": 15120.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 15120.0,
-        "zTotTran": 8762.0,
-        "qTotTran5J": 287797699.0,
-        "qTotCap": 4351501208880.0
       }
     ]
   },
@@ -4622,6 +4622,25 @@
   "کچاد": {
     "insCode": "35700344742885862",
     "prices": [
+      {
+        "priceChange": -110.0,
+        "priceMin": 3580.0,
+        "priceMax": 3630.0,
+        "priceYesterday": 3690.0,
+        "priceFirst": 3580.0,
+        "last": false,
+        "id": 0,
+        "insCode": "35700344742885862",
+        "dEven": 20261101,
+        "hEven": 122952,
+        "pClosing": 3580.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 3580.0,
+        "zTotTran": 4293.0,
+        "qTotTran5J": 407256254.0,
+        "qTotCap": 1458274956190.0
+      },
       {
         "priceChange": -110.0,
         "priceMin": 3680.0,
@@ -5172,31 +5191,31 @@
         "zTotTran": 9143.0,
         "qTotTran5J": 790512527.0,
         "qTotCap": 2244650926780.0
-      },
-      {
-        "priceChange": -80.0,
-        "priceMin": 2910.0,
-        "priceMax": 2910.0,
-        "priceYesterday": 2990.0,
-        "priceFirst": 2910.0,
-        "last": false,
-        "id": 0,
-        "insCode": "35700344742885862",
-        "dEven": 20260920,
-        "hEven": 122954,
-        "pClosing": 2910.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 2910.0,
-        "zTotTran": 3836.0,
-        "qTotTran5J": 390241205.0,
-        "qTotCap": 1135601906550.0
       }
     ]
   },
   "همراه": {
     "insCode": "68635710163497089",
     "prices": [
+      {
+        "priceChange": -310.0,
+        "priceMin": 10300.0,
+        "priceMax": 10320.0,
+        "priceYesterday": 10610.0,
+        "priceFirst": 10300.0,
+        "last": false,
+        "id": 0,
+        "insCode": "68635710163497089",
+        "dEven": 20261101,
+        "hEven": 122855,
+        "pClosing": 10300.0,
+        "iClose": false,
+        "yClose": true,
+        "pDrCotVal": 10300.0,
+        "zTotTran": 624.0,
+        "qTotTran5J": 16786780.0,
+        "qTotCap": 172911056320.0
+      },
       {
         "priceChange": -320.0,
         "priceMin": 10600.0,
@@ -5747,25 +5766,6 @@
         "zTotTran": 518.0,
         "qTotTran5J": 14533279.0,
         "qTotCap": 135920988670.0
-      },
-      {
-        "priceChange": -290.0,
-        "priceMin": 9410.0,
-        "priceMax": 9660.0,
-        "priceYesterday": 9700.0,
-        "priceFirst": 9410.0,
-        "last": false,
-        "id": 0,
-        "insCode": "68635710163497089",
-        "dEven": 20260920,
-        "hEven": 122959,
-        "pClosing": 9410.0,
-        "iClose": false,
-        "yClose": true,
-        "pDrCotVal": 9410.0,
-        "zTotTran": 788.0,
-        "qTotTran5J": 33758710.0,
-        "qTotCap": 317730492680.0
       }
     ]
   }
