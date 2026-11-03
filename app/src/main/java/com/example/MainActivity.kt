@@ -78,6 +78,7 @@ import com.example.ui.screens.CoinDetailScreen
 import com.example.ui.screens.ContactUsScreen
 import com.example.ui.screens.MarketDashboardScreen
 import com.example.ui.screens.IranStockSearchScreen
+import com.example.ui.screens.IranStockDetailScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.WelcomeScreen
 import com.example.ui.screens.SignalsScreen
@@ -206,6 +207,7 @@ fun RigourApp(
                 is Screen.Welcome -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Signals -> viewModel.navigateTo(Screen.Markets)
                 is Screen.IranStockSearch -> viewModel.navigateTo(Screen.Markets)
+                is Screen.IranStockDetail -> viewModel.navigateTo(Screen.IranStockSearch)
                 is Screen.Subscription -> viewModel.navigateTo(Screen.Markets)
                 is Screen.ContactUs -> viewModel.navigateTo(Screen.Settings)
                 is Screen.Settings -> viewModel.navigateTo(Screen.Markets)
