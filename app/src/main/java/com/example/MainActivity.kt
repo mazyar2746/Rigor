@@ -390,6 +390,15 @@ fun RigourApp(
                         )
                     }
 
+                    is Screen.Welcome -> {
+                        WelcomeScreen(
+                            onNavigateToCrypto = { viewModel.navigateTo(Screen.Markets) },
+                            onNavigateToStock = { viewModel.navigateTo(Screen.IranStockSearch) },
+                            onNavigateToForex = { /* به‌زودی */ },
+                            onNavigateToDex = { /* به‌زودی */ }
+                        )
+                    }
+
                     is Screen.IranStockDetail -> {
                         IranStockDetailScreen(
                             stockName = screen.stockName,

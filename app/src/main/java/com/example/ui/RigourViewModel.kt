@@ -43,7 +43,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     private val subscriptionRepository = SubscriptionRepository(database.subscriptionDao())
 
     // App Navigation
-    private val _currentScreen = MutableStateFlow<Screen>(Screen.Markets)
+    private val _currentScreen = MutableStateFlow<Screen>(Screen.Welcome)
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
 
     // i18n & RTL State
