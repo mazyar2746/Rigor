@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -80,7 +81,7 @@ fun WelcomeScreen(
                 color = Color(0xFF94A3B8),
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                fontStyle = FontStyle.Italic
             )
             
             Spacer(modifier = Modifier.height(48.dp))
@@ -153,9 +154,7 @@ fun MarketCard(
     disabled: Boolean = false
 ) {
     Card(
-        modifier = modifier
-            .height(100.dp)
-            .then(if (!disabled) Modifier else Modifier),
+        modifier = modifier.height(100.dp),
         onClick = onClick,
         enabled = !disabled,
         shape = RoundedCornerShape(16.dp),

@@ -384,9 +384,10 @@ fun RigourApp(
                 when (val screen = currentScreen) {
                     is Screen.Welcome -> {
                         WelcomeScreen(
-                            lang = currentLanguage,
-                            onExploreMarkets = { viewModel.navigateTo(Screen.Markets) },
-                            onUnlockPro = { viewModel.navigateTo(Screen.Subscription) }
+                            onNavigateToCrypto = { viewModel.navigateTo(Screen.Markets) },
+                            onNavigateToStock = { viewModel.navigateTo(Screen.IranStockSearch) },
+                            onNavigateToForex = { /* به‌زودی */ },
+                            onNavigateToDex = { /* به‌زودی */ }
                         )
                     }
 
