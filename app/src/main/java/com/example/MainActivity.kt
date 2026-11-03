@@ -77,6 +77,7 @@ import com.example.ui.components.LanguageSelectorDialog
 import com.example.ui.screens.CoinDetailScreen
 import com.example.ui.screens.ContactUsScreen
 import com.example.ui.screens.MarketDashboardScreen
+import com.example.ui.screens.IranStockSearchScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.WelcomeScreen
 import com.example.ui.screens.SignalsScreen
@@ -204,6 +205,7 @@ fun RigourApp(
                 is Screen.CoinDetail -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Welcome -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Signals -> viewModel.navigateTo(Screen.Markets)
+                is Screen.IranStockSearch -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Subscription -> viewModel.navigateTo(Screen.Markets)
                 is Screen.ContactUs -> viewModel.navigateTo(Screen.Settings)
                 is Screen.Settings -> viewModel.navigateTo(Screen.Markets)
@@ -386,6 +388,16 @@ fun RigourApp(
                         )
                     }
 
+                    is Screen.IranStockSearch -> {
+                        IranStockSearchScreen(
+                            onBack = { viewModel.navigateTo(Screen.Markets) },
+                            onStockSelected = { stockName ->
+                                // فعلاً فقط لاگ (بعداً به صفحه جزئیات وصل میشه)
+                                println("Selected stock: $stockName")
+                            }
+                        )
+                    }
+
                     is Screen.Markets -> {
                         MarketDashboardScreen(
                             coins = filteredCoins,
@@ -401,7 +413,8 @@ fun RigourApp(
                             hasMore = hasMore,
                             onLoadMore = { viewModel.loadMoreCoins() },
                             onRefresh = { viewModel.loadCoins() },
-                            lang = currentLanguage
+                            lang = currentLanguage,
+                            onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) }
                         )
                     }
 
