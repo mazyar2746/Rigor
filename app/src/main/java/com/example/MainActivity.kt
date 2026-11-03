@@ -388,12 +388,19 @@ fun RigourApp(
                         )
                     }
 
+                    is Screen.IranStockDetail -> {
+                        IranStockDetailScreen(
+                            stockName = screen.stockName,
+                            onBack = { viewModel.navigateTo(Screen.IranStockSearch) }
+                        )
+                    }
+
                     is Screen.IranStockSearch -> {
                         IranStockSearchScreen(
                             onBack = { viewModel.navigateTo(Screen.Markets) },
                             onStockSelected = { stockName ->
                                 // فعلاً فقط لاگ (بعداً به صفحه جزئیات وصل میشه)
-                                println("Selected stock: $stockName")
+                                viewModel.navigateTo(Screen.IranStockDetail(stockName))
                             }
                         )
                     }

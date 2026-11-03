@@ -33,6 +33,7 @@ sealed class Screen {
     object ContactUs : Screen()
     object Settings : Screen()
     object IranStockSearch : Screen()
+    data class IranStockDetail(val stockName: String) : Screen()
 }
 
 class RigourViewModel(application: Application) : AndroidViewModel(application) {
