@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -63,7 +64,6 @@ fun WelcomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // لوگو
             Text(
                 text = "RIGOR",
                 fontSize = 56.sp,
@@ -74,7 +74,6 @@ fun WelcomeScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // جمله تزئینی
             Text(
                 text = "A comprehensive analytical and trading platform for financial markets.\nRigor is the best of the best.",
                 fontSize = 14.sp,
@@ -86,7 +85,6 @@ fun WelcomeScreen(
             
             Spacer(modifier = Modifier.height(48.dp))
             
-            // کارت‌های انتخاب بازار
             Text(
                 text = "انتخاب بازار",
                 fontSize = 18.sp,
@@ -165,7 +163,12 @@ fun MarketCard(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(if (disabled) Color.Transparent else Brush.linearGradient(gradient))
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    brush = Brush.linearGradient(gradient),
+                    shape = RoundedCornerShape(16.dp),
+                    alpha = if (disabled) 0.5f else 1f
+                )
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
