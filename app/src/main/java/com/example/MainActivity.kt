@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
             val currentLanguage by viewModel.currentLanguage.collectAsState()
             val layoutDirection = if (currentLanguage == Language.PERSIAN) LayoutDirection.Rtl else LayoutDirection.Ltr
 
-            RigorTheme {
+            RigourTheme {
                 CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
                     Scaffold(
                         topBar = {

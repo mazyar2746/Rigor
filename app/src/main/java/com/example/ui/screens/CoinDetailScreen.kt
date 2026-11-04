@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import com.example.ui.util.PriceFormatter
 import com.example.ui.components.CoinIcon
 
 import androidx.compose.foundation.background
@@ -157,7 +158,7 @@ fun CoinDetailScreen(
             ) {
                 Column {
                     Text(
-                        text = formatPrice(coin.priceUsd),
+                        text = PriceFormatter.formatPrice(coin.priceUsd),
                         color = Color.White,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold
@@ -183,12 +184,12 @@ fun CoinDetailScreen(
                 // 24h High / Low Stats
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "24h High: " + formatPrice(coin.high24h),
+                        text = "24h High: " + PriceFormatter.formatPrice(coin.high24h),
                         color = Color(0xFF94A3B8),
                         fontSize = 11.sp
                     )
                     Text(
-                        text = "24h Low: " + formatPrice(coin.low24h),
+                        text = "24h Low: " + PriceFormatter.formatPrice(coin.low24h),
                         color = Color(0xFF94A3B8),
                         fontSize = 11.sp
                     )
