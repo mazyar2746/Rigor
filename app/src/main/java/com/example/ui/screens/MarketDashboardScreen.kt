@@ -1,113 +1,187 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.RigourBackground
-import com.example.ui.theme.RigourCyan
+import com.example.data.model.CryptoCoin
+import com.example.i18n.Language
+import com.example.i18n.StringsDictionary
+import com.example.ui.components.CoinIcon
+import com.example.ui.theme.*
 
 @Composable
 fun MarketDashboardScreen(
+    coins: List<CryptoCoin>,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    onlyFavorites: Boolean,
+    onToggleFavorites: () -> Unit,
+    favoriteSymbols: List<String>,
+    onToggleFavoriteCoin: (String) -> Unit,
+    onSelectCoin: (CryptoCoin) -> Unit,
+    isLoading: Boolean,
+    isLoadingMore: Boolean,
+    hasMore: Boolean,
+    onLoadMore: () -> Unit,
+    onRefresh: () -> Unit,
     onNavigateToCrypto: () -> Unit,
-    onNavigateToIranStock: () -> Unit
+    onNavigateToIranStock: () -> Unit,
+    lang: Language
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(RigourBackground)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 16.dp)
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // جمله تزئینی (شعار)
-        Text(
-            text = "A comprehensive analytical and trading platform for financial markets.",
-            color = Color(0xFF94A3B8),
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center,
-            fontStyle = FontStyle.Italic,
-            lineHeight = 20.sp
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Rigor is the best of the best.",
-            color = RigourCyan,
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // کارت‌های انتخاب بازار
-        Text(
-            text = "انتخاب بازار",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // دکمه ورود به بازار سهام ایران
-        Button(
-            onClick = onNavigateToIranStock,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+        // دکمه‌های انتخاب بازار (بالای صفحه)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "📈",
-                    fontSize = 28.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "بازار سهام ایران",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
+            Button(
+                onClick = onNavigateToCrypto,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C63FF)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("₿ کریپتو", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+            Button(
+                onClick = onNavigateToIranStock,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("📈 بورس ایران", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // دکمه کریپتو (فعال - به صفحه فعلی اشاره می‌کنه)
-        Button(
-            onClick = onNavigateToCrypto,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C63FF)),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+        // Search Bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearchQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text(
+                    text = StringsDictionary.get("search_placeholder", lang),
+                    color = Color.Gray,
+                    fontSize = 13.sp
+                )
+            },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { onSearchQueryChange("") }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color.Gray)
+                    }
+                }
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = RigourSurface,
+                unfocusedContainerColor = RigourSurface,
+                focusedBorderColor = RigourCyan,
+                unfocusedBorderColor = Color.Transparent,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Filter Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "₿",
-                    fontSize = 28.sp,
-                    color = Color.White
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = !onlyFavorites,
+                    onClick = { if (onlyFavorites) onToggleFavorites() },
+                    label = { Text(StringsDictionary.get("filter_all", lang)) }
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "بازار کریپتو",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                FilterChip(
+                    selected = onlyFavorites,
+                    onClick = onToggleFavorites,
+                    label = { Text("Watchlist") }
                 )
+            }
+            IconButton(onClick = onRefresh) {
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = RigourCyan)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (isLoading && coins.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = RigourCyan)
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(coins) { coin ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelectCoin(coin) },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = RigourSurface)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CoinIcon(symbol = coin.symbol, modifier = Modifier.size(40.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = coin.name, color = Color.White, fontWeight = FontWeight.Bold)
+                                Text(text = coin.symbol, color = Color.Gray, fontSize = 12.sp)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(text = "$${coin.price}", color = Color.White, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = "${coin.changePercent}%",
+                                    color = if (coin.changePercent >= 0) RigourBullish else RigourBearish,
+                                    fontSize = 12.sp
+                                )
+                            }
+                            IconButton(onClick = { onToggleFavoriteCoin(coin.symbol) }) {
+                                Icon(
+                                    imageVector = if (favoriteSymbols.contains(coin.symbol)) Icons.Default.Star else Icons.Outlined.StarBorder,
+                                    contentDescription = "Favorite",
+                                    tint = if (favoriteSymbols.contains(coin.symbol)) Color(0xFFEAB308) else Color.Gray
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

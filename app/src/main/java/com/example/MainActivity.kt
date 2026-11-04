@@ -155,8 +155,22 @@ class MainActivity : ComponentActivity() {
                                 }
                                 is Screen.Markets -> {
                                     MarketDashboardScreen(
+                                        coins = viewModel.coins.collectAsState().value,
+                                        searchQuery = viewModel.searchQuery.collectAsState().value,
+                                        onSearchQueryChange = { viewModel.setSearchQuery(it) },
+                                        onlyFavorites = viewModel.onlyFavorites.collectAsState().value,
+                                        onToggleFavorites = { viewModel.toggleFavoritesOnly() },
+                                        favoriteSymbols = viewModel.favoriteSymbols.collectAsState().value,
+                                        onToggleFavoriteCoin = { viewModel.toggleFavorite(it) },
+                                        onSelectCoin = { viewModel.selectCoin(it) },
+                                        isLoading = viewModel.isMarketLoading.collectAsState().value,
+                                        isLoadingMore = viewModel.isLoadingMore.collectAsState().value,
+                                        hasMore = viewModel.hasMore.collectAsState().value,
+                                        onLoadMore = { viewModel.loadMoreCoins() },
+                                        onRefresh = { viewModel.loadCoins() },
                                         onNavigateToCrypto = { viewModel.navigateTo(Screen.Crypto) },
-                                        onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) }
+                                        onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) },
+                                        lang = currentLanguage
                                     )
                                 }
                                 is Screen.Crypto -> {
