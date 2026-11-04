@@ -41,17 +41,6 @@ class MainActivity : ComponentActivity() {
 
             RigorTheme {
                 CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
-                    BackHandler(enabled = currentScreen !is Screen.Markets) {
-                        when (currentScreen) {
-                            is Screen.IranStockDetail -> viewModel.navigateTo(Screen.IranStockSearch)
-                            is Screen.IranStockSearch -> viewModel.navigateTo(Screen.Markets)
-                            is Screen.Signals -> viewModel.navigateTo(Screen.Markets)
-                            is Screen.Subscription -> viewModel.navigateTo(Screen.Markets)
-                            is Screen.Settings -> viewModel.navigateTo(Screen.Markets)
-                            else -> viewModel.navigateTo(Screen.Markets)
-                        }
-                    }
-
                     Scaffold(
                         topBar = {
                             TopAppBar(
@@ -63,7 +52,7 @@ class MainActivity : ComponentActivity() {
                                             modifier = Modifier
                                                 .size(32.dp)
                                                 .clip(RoundedCornerShape(8.dp))
-                                                .border(1.dp, RigourCyan.copy(alpha = 0.5f.float), RoundedCornerShape(8.dp))
+                                                .border(1.dp, RigourCyan, RoundedCornerShape(8.dp))
                                         )
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
@@ -84,28 +73,26 @@ class MainActivity : ComponentActivity() {
                                         onDismissRequest = { menuExpanded = false }
                                     ) {
                                         DropdownMenuItem(
-                                            text = { Text("کرستو") },
+                                            text = { Text("کریپتو") },
                                             onClick = { menuExpanded = false; viewModel.navigateTo(Screen.Markets) }
                                         )
                                         DropdownMenuItem(
-                                            text = { Text("«برست آرلای") },
+                                            text = { Text("بورس ایران") },
                                             onClick = { menuExpanded = false; viewModel.navigateTo(Screen.IranStockSearch) }
                                         )
                                         DropdownMenuItem(
-                                            text = { Text("فاركس (بهزود)") },
+                                            text = { Text("فارکس (به‌زودی)") },
                                             onClick = { menuExpanded = false },
                                             enabled = false
                                         )
                                         DropdownMenuItem(
-                                            text = { Text("دکس (بهزود)") },
+                                            text = { Text("دکس (به‌زودی)") },
                                             onClick = { menuExpanded = false },
                                             enabled = false
                                         )
                                     }
                                 },
-                                colors = TopAppBarDefaults.topAppBarColors(
-                                    containerColor = RigourSurface
-                                )
+                                colors = TopAppBarDefaults.topAppBarColors(containerColor = RigourSurface)
                             )
                         },
                         bottomBar = {
@@ -113,46 +100,34 @@ class MainActivity : ComponentActivity() {
                                 containerColor = RigourSurface,
                                 modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                             ) {
-                                val marketsSelected = currentScreen is Screen.Markets || currentScreen is Screen.CoinDetail || currentScreen is Screen.IranStockSearch || currentScreen is Screen.IranStockDetail
+                                val marketsSelected = currentScreen is Screen.Markets || currentScreen is Screen.IranStockSearch || currentScreen is Screen.IranStockDetail
                                 val signalsSelected = currentScreen is Screen.Signals
                                 val subSelected = currentScreen is Screen.Subscription
                                 val settingsSelected = currentScreen is Screen.Settings
-
-                                val itemColors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = RigourCyan,
-                                    selectedTextColor = RigourCyan,
-                                    indicatorColor = RigourCyan.copy(alpha = 0.15f),
-                                    unselectedIconColor = Color.Gray,
-                                    unselectedTextColor = Color.Gray
-                                )
 
                                 NavigationBarItem(
                                     selected = marketsSelected,
                                     onClick = { viewModel.navigateTo(Screen.Markets) },
                                     icon = { Icon(Icons.Default.TrendingUp, contentDescription = "Markets") },
-                                    label = { Text(StringsDictionary.get("nav_markets", currentLanguage), fontSize = 10.sp) },
-                                    colors = itemColors
+                                    label = { Text(StringsDictionary.get("nav_markets", currentLanguage), fontSize = 10.sp) }
                                 )
                                 NavigationBarItem(
                                     selected = signalsSelected,
                                     onClick = { viewModel.navigateTo(Screen.Signals) },
                                     icon = { Icon(Icons.Default.AutoGraph, contentDescription = "Signals") },
-                                    label = { Text(StringsDictionary.get("nav_signals", currentLanguage), fontSize = 10.sp) },
-                                    colors = itemColors
+                                    label = { Text(StringsDictionary.get("nav_signals", currentLanguage), fontSize = 10.sp) }
                                 )
                                 NavigationBarItem(
                                     selected = subSelected,
                                     onClick = { viewModel.navigateTo(Screen.Subscription) },
                                     icon = { Icon(Icons.Default.Lock, contentDescription = "Pro") },
-                                    label = { Text(StringsDictionary.get("nav_subscription", currentLanguage), fontSize = 10.sp) },
-                                    colors = itemColors
+                                    label = { Text(StringsDictionary.get("nav_subscription", currentLanguage), fontSize = 10.sp) }
                                 )
                                 NavigationBarItem(
                                     selected = settingsSelected,
                                     onClick = { viewModel.navigateTo(Screen.Settings) },
                                     icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                                    label = { Text(StringsDictionary.get("nav_settings", currentLanguage), fontSize = 10.sp) },
-                                    colors = itemColors
+                                    label = { Text(StringsDictionary.get("nav_settings", currentLanguage), fontSize = 10.sp) }
                                 )
                             }
                         }
@@ -175,11 +150,6 @@ class MainActivity : ComponentActivity() {
                                     IranStockSearchScreen(
                                         onBack = { viewModel.navigateTo(Screen.Markets) },
                                         onStockSelected = { viewModel.navigateTo(Screen.IranStockDetail(it)) }
-                                    )
-                                }
-                                is Screen.Markets -> {
-                                    MarketDashboardScreen(
-                                        onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) }
                                     )
                                 }
                                 else -> {
