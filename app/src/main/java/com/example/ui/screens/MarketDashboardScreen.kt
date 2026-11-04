@@ -62,9 +62,6 @@ import com.example.ui.theme.RigourGold
 import com.example.ui.theme.RigourSurface
 import com.example.ui.theme.RigourSurfaceVariant
 import java.util.Locale
-import com.example.ui.components.ThreeDMarketButton
-import androidx.compose.material.icons.filled.ShowChart
-import androidx.compose.material.icons.filled.CurrencyBitcoin
 
 @Composable
 fun MarketDashboardScreen(
@@ -81,7 +78,6 @@ fun MarketDashboardScreen(
     hasMore: Boolean,
     onLoadMore: () -> Unit,
     onRefresh: () -> Unit,
-    onNavigateToIranStock: () -> Unit,
     lang: Language
 ) {
     val listState = rememberLazyListState()
@@ -108,31 +104,6 @@ fun MarketDashboardScreen(
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(12.dp))
-
-        // --- ThreeD Market Selector Buttons ---
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            ThreeDMarketButton(
-                title = "کریپتو",
-                icon = Icons.Default.CurrencyBitcoin,
-                gradientColors = listOf(Color(0xFF6C63FF), Color(0xFF9D4EDD)),
-                isSelected = true,
-                onClick = { /* کریپتو از قبل بازه */ },
-                modifier = Modifier.weight(1f)
-            )
-            ThreeDMarketButton(
-                title = "بورس ایران",
-                icon = Icons.Default.ShowChart,
-                gradientColors = listOf(Color(0xFF00C853), Color(0xFF64DD17)),
-                isSelected = false,
-                onClick = onNavigateToIranStock,
-                modifier = Modifier.weight(1f)
-            )
-        }
 
         // Search Bar
         OutlinedTextField(

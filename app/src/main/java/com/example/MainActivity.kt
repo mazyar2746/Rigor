@@ -90,6 +90,9 @@ import com.example.ui.theme.RigourCyan
 import com.example.ui.theme.RigourGold
 import com.example.ui.theme.RigourSurface
 import com.example.ui.theme.RigourTheme
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.filled.Menu
 
 class MainActivity : ComponentActivity() {
 
@@ -293,6 +296,45 @@ fun RigourApp(
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
+                        }
+                    },
+                    actions = {
+                        var menuExpanded by remember { mutableStateOf(false) }
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu",
+                                tint = Color.White
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("کریپتو") },
+                                onClick = {
+                                    menuExpanded = false
+                                    viewModel.navigateTo(Screen.Markets)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("بورس ایران") },
+                                onClick = {
+                                    menuExpanded = false
+                                    viewModel.navigateTo(Screen.IranStockSearch)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("فارکس (به‌زودی)") },
+                                onClick = { menuExpanded = false },
+                                enabled = false
+                            )
+                            DropdownMenuItem(
+                                text = { Text("دکس (به‌زودی)") },
+                                onClick = { menuExpanded = false },
+                                enabled = false
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
