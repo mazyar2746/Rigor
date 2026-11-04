@@ -17,6 +17,7 @@ import com.example.ui.theme.RigourCyan
 
 @Composable
 fun MarketDashboardScreen(
+    onNavigateToCrypto: () -> Unit,
     onNavigateToIranStock: () -> Unit
 ) {
     Column(
@@ -87,7 +88,7 @@ fun MarketDashboardScreen(
 
         // دکمه کریپتو (فعال - به صفحه فعلی اشاره می‌کنه)
         Button(
-            onClick = { /* همین صفحه */ },
+            onClick = onNavigateToCrypto,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(80.dp),

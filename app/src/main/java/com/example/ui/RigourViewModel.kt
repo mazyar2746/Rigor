@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 sealed class Screen {
     object Welcome : Screen()
     object Markets : Screen()
+    object Crypto : Screen()
     object Signals : Screen()
     data class CoinDetail(val coin: CryptoCoin) : Screen()
     object Subscription : Screen()

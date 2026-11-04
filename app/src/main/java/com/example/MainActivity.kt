@@ -155,11 +155,34 @@ class MainActivity : ComponentActivity() {
                                 }
                                 is Screen.Markets -> {
                                     MarketDashboardScreen(
+                                        onNavigateToCrypto = { viewModel.navigateTo(Screen.Crypto) },
                                         onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) }
                                     )
                                 }
+                                is Screen.Crypto -> {
+                                    CryptoDashboardScreen(
+                                        onBack = { viewModel.navigateTo(Screen.Markets) }
+                                    )
+                                }
+                                is Screen.Signals -> {
+                                    // فعلاً یه صفحه ساده برای تست
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text("صفحه سیگنال‌ها (به‌زودی)", color = Color.White, fontSize = 20.sp)
+                                    }
+                                }
+                                is Screen.Subscription -> {
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text("صفحه اشتراک (به‌زودی)", color = Color.White, fontSize = 20.sp)
+                                    }
+                                }
+                                is Screen.Settings -> {
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text("صفحه تنظیمات (به‌زودی)", color = Color.White, fontSize = 20.sp)
+                                    }
+                                }
                                 else -> {
                                     MarketDashboardScreen(
+                                        onNavigateToCrypto = { viewModel.navigateTo(Screen.Crypto) },
                                         onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) }
                                     )
                                 }
