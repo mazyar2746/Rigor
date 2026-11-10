@@ -70,6 +70,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.billing.BillingManager
 import com.example.data.repository.MarketDataCacheManager
+import com.example.data.model.ForexPairs
 import com.example.i18n.Language
 import com.example.i18n.StringsDictionary
 import com.example.ui.RigourViewModel
