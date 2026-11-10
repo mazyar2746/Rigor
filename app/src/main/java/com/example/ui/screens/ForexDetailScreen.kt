@@ -63,7 +63,7 @@ fun ForexDetailScreen(
                     if (quote != null) {
                         val isPositive = quote.changePercent >= 0.0
                         Text(
-                            text = "${formatPrice(quote.price)} (${if (isPositive) "+" else ""}${"%.2f".format(quote.changePercent)}%)",
+                            text = "${formatForexPrice(quote.price)} (${if (isPositive) "+" else ""}${"%.2f".format(quote.changePercent)}%)",
                             color = if (isPositive) RigourBullish else Color(0xFFEF4444),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
@@ -235,14 +235,14 @@ private fun PriceCard(quote: ForexQuote) {
             Text(text = "قیمت لحظه‌ای", color = Color(0xFF94A3B8), fontSize = 11.sp)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = formatPrice(quote.price),
+                text = formatForexPrice(quote.price),
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "${if (isPositive) "+" else ""}${formatPrice(quote.change)} (${if (isPositive) "+" else ""}${"%.2f".format(quote.changePercent)}%)",
+                text = "${if (isPositive) "+" else ""}${formatForexPrice(quote.change)} (${if (isPositive) "+" else ""}${"%.2f".format(quote.changePercent)}%)",
                 color = changeColor,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold
@@ -252,8 +252,8 @@ private fun PriceCard(quote: ForexQuote) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "High: ${formatPrice(quote.dayHigh)}", color = Color(0xFF94A3B8), fontSize = 11.sp)
-                Text(text = "Low: ${formatPrice(quote.dayLow)}", color = Color(0xFF94A3B8), fontSize = 11.sp)
+                Text(text = "High: ${formatForexPrice(quote.dayHigh)}", color = Color(0xFF94A3B8), fontSize = 11.sp)
+                Text(text = "Low: ${formatForexPrice(quote.dayLow)}", color = Color(0xFF94A3B8), fontSize = 11.sp)
             }
         }
     }
@@ -328,7 +328,7 @@ private fun IndicatorsCard(analysis: ForexAnalysisResult) {
             HorizontalDivider(color = RigourCardBorder, modifier = Modifier.padding(vertical = 8.dp))
             IndicatorRow(
                 label = "Bollinger",
-                value = "${formatPrice(analysis.bbLower)} - ${formatPrice(analysis.bbUpper)}",
+                value = "${formatForexPrice(analysis.bbLower)} - ${formatForexPrice(analysis.bbUpper)}",
                 description = analysis.bbDescription
             )
         }
@@ -358,11 +358,3 @@ private fun signalLabel(signal: SignalType): Pair<String, Color> = when (signal)
     SignalType.STRONG_SELL -> "فروش قوی" to Color(0xFFEF4444)
 }
 
-private fun formatPrice(price: Double): String {
-    return when {
-        price >= 100.0 -> "%.2f".format(price)
-        price >= 10.0 -> "%.3f".format(price)
-        price >= 1.0 -> "%.4f".format(price)
-        else -> "%.5f".format(price)
-    }
-}

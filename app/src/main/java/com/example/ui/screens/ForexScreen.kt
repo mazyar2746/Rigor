@@ -203,7 +203,7 @@ private fun ForexPairCard(
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = if (quote != null) formatPrice(quote.price) else "—",
+                    text = if (quote != null) formatForexPrice(quote.price) else "—",
                     color = Color.White,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold

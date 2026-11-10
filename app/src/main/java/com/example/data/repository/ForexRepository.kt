@@ -42,7 +42,7 @@ class ForexRepository(
     private val _lastUpdated = MutableStateFlow(0L)
     val lastUpdated = _lastUpdated.asStateFlow()
 
-    private val engine = TechnicalAnalysisEngine()
+    // TechnicalAnalysisEngine is a Kotlin object, use directly
 
     /**
      * Load quotes for a page of symbols (max ~10 per call).
@@ -105,7 +105,7 @@ class ForexRepository(
             val currentPrice = currentQuote?.price ?: candles.last().close
 
             // Use existing TechnicalAnalysisEngine — same API used for crypto
-            val taResult = engine.analyze(
+            val taResult = TechnicalAnalysisEngine.analyze(
                 symbol = symbol,
                 candles = candles,
                 currentPrice = currentPrice
