@@ -137,7 +137,7 @@ fun MarketSelectorScreen(
                     gradient = listOf(Color(0xFF6366F1).copy(alpha = 0.8f), Color(0xFF8B5CF6).copy(alpha = 0.6f)),
                     onClick = onNavigateToForex,
                     modifier = Modifier.weight(1f),
-                    disabled = true
+                    disabled = false
                 )
                 GlassMarketCard(
                     title = "دکس",

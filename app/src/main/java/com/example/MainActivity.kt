@@ -84,6 +84,8 @@ import com.example.ui.screens.IranStockDetailScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.WelcomeScreen
 import com.example.ui.screens.SignalsScreen
+import com.example.ui.screens.ForexScreen
+import com.example.ui.screens.ForexDetailScreen
 import com.example.ui.screens.SubscriptionScreen
 import com.example.ui.theme.RigourBackground
 import com.example.ui.theme.RigourBullish
@@ -207,6 +209,8 @@ fun RigourApp(
                 is Screen.IranStockDetail -> viewModel.navigateTo(Screen.IranStockSearch)
                 is Screen.IranStockSearch -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Hub -> {}
+                is Screen.Forex -> viewModel.navigateTo(Screen.Hub)
+                is Screen.ForexDetail -> viewModel.navigateTo(Screen.Forex)
                 is Screen.Welcome -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Signals -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Subscription -> viewModel.navigateTo(Screen.Markets)
@@ -408,11 +412,50 @@ fun RigourApp(
                         MarketSelectorScreen(
                             onNavigateToCrypto = { viewModel.navigateTo(Screen.Markets) },
                             onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) },
-                            onNavigateToForex = { /* به‌زودی */ },
+                            onNavigateToForex = { viewModel.navigateToForex() },
                             onNavigateToDex = { /* به‌زودی */ }
                         )
                     }
 
+
+                    is Screen.Forex -> {
+                        val quotes by viewModel.forexQuotes.collectAsStateWithLifecycle()
+                        val isLoadingFx by viewModel.isForexLoading.collectAsStateWithLifecycle()
+                        val errorFx by viewModel.forexErrorMessage.collectAsStateWithLifecycle()
+                        ForexScreen(
+                            quotes = quotes,
+                            isLoading = isLoadingFx,
+                            errorMessage = errorFx,
+                            lang = currentLanguage,
+                            onBack = { viewModel.navigateTo(Screen.Hub) },
+                            onSelectPair = { pair -> viewModel.selectForexPair(pair) },
+                            onRefresh = { viewModel.refreshForexQuotes(ForexPairs.ALL.map { it.symbol }) }
+                        )
+                    }
+
+                    is Screen.ForexDetail -> {
+                        val quotes by viewModel.forexQuotes.collectAsStateWithLifecycle()
+                        val analyses by viewModel.forexAnalyses.collectAsStateWithLifecycle()
+                        val isLoadingFx by viewModel.isForexLoading.collectAsStateWithLifecycle()
+                        val errorFx by viewModel.forexErrorMessage.collectAsStateWithLifecycle()
+                        val pair = viewModel.selectedForexPair.collectAsStateWithLifecycle().value
+                            ?: ForexPairs.findBySymbol(screen.symbol)
+                        if (pair != null) {
+                            val quote = quotes[pair.symbol.uppercase()]
+                            val analysis = analyses[pair.symbol.uppercase()]
+                            ForexDetailScreen(
+                                pair = pair,
+                                quote = quote,
+                                analysis = analysis,
+                                candles = analysis?.candles ?: emptyList(),
+                                isLoading = isLoadingFx,
+                                errorMessage = errorFx,
+                                lang = currentLanguage,
+                                onBack = { viewModel.navigateTo(Screen.Forex) },
+                                onRefresh = { viewModel.refreshForexDetail() }
+                            )
+                        }
+                    }
                     is Screen.Markets -> {
                         MarketDashboardScreen(
                             onNavigateToHub = { viewModel.navigateTo(Screen.Hub) },
