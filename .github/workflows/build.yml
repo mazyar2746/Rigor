@@ -39,23 +39,16 @@ jobs:
           ALIAS: ${{ secrets.ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Get version
-        id: version
-        run: |
-          VERSION=$(grep -m1 'versionName' app/build.gradle* | sed -E 's/.*versionName[[:space:]]*"?([^"]+)"?.*/\1/' | tr -d ' ')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "date=$(date +%Y%m%d-%H%M)" >> $GITHUB_OUTPUT
-
       - name: Rename APK
         run: |
           mkdir -p release-out
-          find app/build/outputs/apk/release -name "*.apk" -exec cp {} release-out/Rigor-${{ steps.version.outputs.version }}.apk \;
+          find app/build/outputs/apk/release -name "*.apk" -exec cp {} release-out/Rigor.apk \;
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}-${{ steps.version.outputs.date }}
-          name: Rigor v${{ steps.version.outputs.version }}
+          tag_name: release-${{ github.run_number }}
+          name: Rigor Release (Build ${{ github.run_number }})
           files: release-out/*.apk
           draft: false
           prerelease: false
