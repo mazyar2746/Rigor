@@ -1,17 +1,16 @@
-name: Build Android APK
+name: Build and Release APK
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build & Package APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -19,67 +18,39 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
-      - name: Make Gradlew Executable
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
+
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build Release APK
-        run: |
-          ./gradlew assembleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
 
-      - name: Sign APK with Keystore
-        env:
-          KEYSTORE_PASSWORD: "rigornasirihashem"
-          KEY_ALIAS: "my-key-alias"
-          KEY_PASSWORD: "rigornasirihashem"
+      - name: Find APK
+        id: find_apk
         run: |
-          UNSIGNED_APK=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)
-          if [ -z "$UNSIGNED_APK" ]; then
-            echo "Error: Unsigned release APK not found!"
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: APK not found!"
             exit 1
           fi
-          echo "Found unsigned APK at: $UNSIGNED_APK"
+          echo "Found APK: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
 
-          BT_VERSION=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)
-          ZIPALIGN="$ANDROID_HOME/build-tools/$BT_VERSION/zipalign"
-          APKSIGNER="$ANDROID_HOME/build-tools/$BT_VERSION/apksigner"
-
-          echo "Using Android Build-Tools version: $BT_VERSION"
-
-          # 1. Align the unsigned APK
-          "$ZIPALIGN" -v -p 4 "$UNSIGNED_APK" app-aligned.apk
-
-          # 2. Ensure Keystore exists (use release.keystore from repo or create with keytool)
-          if [ ! -f release.keystore ]; then
-            echo "Generating release.keystore on runner..."
-            keytool -genkeypair -v -keystore release.keystore \
-              -storepass "$KEYSTORE_PASSWORD" \
-              -alias "$KEY_ALIAS" \
-              -keypass "$KEY_PASSWORD" \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -dname "CN=Rigor, OU=Rigor, O=Rigor, L=Tehran, C=IR"
-          else
-            echo "Using committed release.keystore from repository."
-          fi
-
-          # Verify keystore integrity with keytool
-          keytool -list -keystore release.keystore -storepass "$KEYSTORE_PASSWORD" > /dev/null
-          echo "Keystore successfully verified!"
-
-          # 3. Sign the APK using apksigner
-          "$APKSIGNER" sign --ks release.keystore \
-            --ks-pass "pass:$KEYSTORE_PASSWORD" \
-            --key-pass "pass:$KEY_PASSWORD" \
-            --ks-key-alias "$KEY_ALIAS" \
-            --out app-release-signed.apk app-aligned.apk
-
-          # 4. Verify signature
-          "$APKSIGNER" verify --verbose app-release-signed.apk
-
-      - name: Upload Signed Release APK
-        uses: actions/upload-artifact@v4
+      - name: Upload to GitHub Releases
+        uses: softprops/action-gh-release@v2
         with:
-          name: Rigor-Release-APK
-          path: app-release-signed.apk
-          if-no-files-found: error
+          tag_name: v1.1.2-release-${{ github.run_number }}
+          name: Rigor v1.1.2 - Build ${{ github.run_number }}
+          body: |
+            نسخه پایه Rigor (کافه‌بازار) - بدون فارکس
+            Build: ${{ github.run_number }}
+          files: ${{ steps.find_apk.outputs.apk_path }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
