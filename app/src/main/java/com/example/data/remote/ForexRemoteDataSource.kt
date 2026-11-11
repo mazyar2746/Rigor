@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.config.RigorConfig
 import com.example.data.model.Candle
 import com.example.data.model.ForexQuote
+import com.example.data.model.ForexNewsItem
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -309,6 +310,57 @@ class ForexRemoteDataSource(
 
         Log.d(TAG, "Finnhub loaded ${result.size}/${symbols.size} quotes")
         return@withContext result
+    }
+
+    /**
+     * Fetch live forex news from Finnhub (category=forex).
+     * Returns top N headlines. Used for the News Ticker on Forex screen.
+     */
+    suspend fun fetchForexNews(limit: Int = 15): List<ForexNewsItem> = withContext(Dispatchers.IO) {
+        val items = mutableListOf<ForexNewsItem>()
+        try {
+            val url = "https://finnhub.io/api/v1/news?category=forex&token=${RigorConfig.FINNHUB_API_KEY}"
+            val request = Request.Builder().url(url).build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    Log.w(TAG, "Finnhub news HTTP ${response.code}")
+                    return@withContext items
+                }
+                val body = response.body?.string() ?: return@withContext items
+                val arr = gson.fromJson(body, com.google.gson.JsonArray::class.java) ?: return@withContext items
+
+                var count = 0
+                for (elem in arr) {
+                    if (count >= limit) break
+                    val obj = elem.asJsonObject
+                    val headline = obj.get("headline")?.asString ?: continue
+                    val id = obj.get("id")?.asLong ?: System.currentTimeMillis()
+                    val summary = obj.get("summary")?.asString ?: ""
+                    val source = obj.get("source")?.asString ?: ""
+                    val newsUrl = obj.get("url")?.asString ?: ""
+                    val datetime = obj.get("datetime")?.asLong ?: 0L
+                    val imageUrl = obj.get("image")?.asString
+
+                    items.add(
+                        ForexNewsItem(
+                            id = id,
+                            headline = headline,
+                            summary = summary,
+                            source = source,
+                            url = newsUrl,
+                            datetime = datetime,
+                            imageUrl = imageUrl
+                        )
+                    )
+                    count++
+                }
+            }
+            Log.d(TAG, "Loaded ${items.size} forex news items")
+        } catch (t: Throwable) {
+            Log.w(TAG, "fetchForexNews failed: ${t.message}")
+        }
+        return@withContext items
     }
 
     companion object {

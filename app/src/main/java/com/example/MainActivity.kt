@@ -423,6 +423,7 @@ fun RigourApp(
                         val quotes by viewModel.forexQuotes.collectAsStateWithLifecycle()
                         val isLoadingFx by viewModel.isForexLoading.collectAsStateWithLifecycle()
                         val errorFx by viewModel.forexErrorMessage.collectAsStateWithLifecycle()
+                        val newsFx by viewModel.forexNews.collectAsStateWithLifecycle()
                         ForexScreen(
                             quotes = quotes,
                             isLoading = isLoadingFx,
@@ -430,7 +431,8 @@ fun RigourApp(
                             lang = currentLanguage,
                             onBack = { viewModel.navigateTo(Screen.Hub) },
                             onSelectPair = { pair -> viewModel.selectForexPair(pair) },
-                            onRefresh = { viewModel.refreshForexQuotes(ForexPairs.ALL.map { it.symbol }) }
+                            onRefresh = { viewModel.refreshForexQuotes(ForexPairs.ALL.map { it.symbol }) },
+                            news = newsFx
                         )
                     }
 
@@ -439,6 +441,7 @@ fun RigourApp(
                         val analyses by viewModel.forexAnalyses.collectAsStateWithLifecycle()
                         val isLoadingFx by viewModel.isForexLoading.collectAsStateWithLifecycle()
                         val errorFx by viewModel.forexErrorMessage.collectAsStateWithLifecycle()
+                        val newsFx by viewModel.forexNews.collectAsStateWithLifecycle()
                         val pair = viewModel.selectedForexPair.collectAsStateWithLifecycle().value
                             ?: ForexPairs.findBySymbol(screen.symbol)
                         if (pair != null) {

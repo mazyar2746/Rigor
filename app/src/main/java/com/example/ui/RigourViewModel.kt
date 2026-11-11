@@ -16,6 +16,7 @@ import com.example.data.model.ForexPair
 import com.example.data.model.ForexPairs
 import com.example.data.model.ForexQuote
 import com.example.data.model.ForexAnalysisResult
+import com.example.data.model.ForexNewsItem
 import com.example.data.repository.SubscriptionRepository
 import com.example.i18n.Language
 import com.example.i18n.StringsDictionary
@@ -356,6 +357,8 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     val isForexLoading: StateFlow<Boolean> = forexRepository.isLoading
     val forexErrorMessage: StateFlow<String?> = forexRepository.errorMessage
     val forexLastUpdated: StateFlow<Long> = forexRepository.lastUpdated
+    val forexNews: StateFlow<List<ForexNewsItem>> = forexRepository.news
+    val isForexNewsLoading: StateFlow<Boolean> = forexRepository.isNewsLoading
 
     // Currently selected forex pair (for detail screen)
     private val _selectedForexPair = MutableStateFlow<ForexPair?>(null)
@@ -368,6 +371,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
         // Load first page (10 majors) automatically
         viewModelScope.launch {
             forexRepository.loadFirstPage()
+            forexRepository.loadForexNews()
         }
     }
 

@@ -5,6 +5,7 @@ import com.example.data.model.Candle
 import com.example.data.model.ForexAnalysisResult
 import com.example.data.model.ForexPairs
 import com.example.data.model.ForexQuote
+import com.example.data.model.ForexNewsItem
 import com.example.data.remote.ForexRemoteDataSource
 import com.example.engine.TechnicalAnalysisEngine
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +42,13 @@ class ForexRepository(
 
     private val _lastUpdated = MutableStateFlow(0L)
     val lastUpdated = _lastUpdated.asStateFlow()
+
+    // --- Forex News ---
+    private val _news = MutableStateFlow<List<ForexNewsItem>>(emptyList())
+    val news = _news.asStateFlow()
+
+    private val _isNewsLoading = MutableStateFlow(false)
+    val isNewsLoading = _isNewsLoading.asStateFlow()
 
     // TechnicalAnalysisEngine is a Kotlin object, use directly
 
@@ -175,6 +183,23 @@ class ForexRepository(
     /** Clear transient error message. */
     fun clearError() {
         _errorMessage.value = null
+    }
+
+    /** Load live forex news from Finnhub. Called once when Forex screen opens. */
+    suspend fun loadForexNews(limit: Int = 15) = withContext(Dispatchers.IO) {
+        if (_news.value.isNotEmpty()) return@withContext
+        _isNewsLoading.value = true
+        try {
+            val items = remote.fetchForexNews(limit)
+            if (items.isNotEmpty()) {
+                _news.value = items
+                Log.d(TAG, "Loaded ${items.size} news items")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "loadForexNews failed: ${t.message}")
+        } finally {
+            _isNewsLoading.value = false
+        }
     }
 
     companion object {

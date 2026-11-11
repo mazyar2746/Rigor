@@ -140,3 +140,17 @@ object ForexPairs {
     fun findBySymbol(symbol: String): ForexPair? =
         ALL.firstOrNull { it.symbol.equals(symbol, ignoreCase = true) }
 }
+
+/**
+ * Forex News Item - fetched from Finnhub news API.
+ * Used in the News Ticker on the Forex screen.
+ */
+data class ForexNewsItem(
+    val id: Long,
+    val headline: String,
+    val summary: String,
+    val source: String,
+    val url: String,
+    val datetime: Long,
+    val imageUrl: String? = null
+)

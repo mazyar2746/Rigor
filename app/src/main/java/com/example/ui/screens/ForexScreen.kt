@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.ForexPair
 import com.example.data.model.ForexPairs
 import com.example.data.model.ForexQuote
+import com.example.data.model.ForexNewsItem
+import com.example.ui.components.NewsTicker
 import com.example.i18n.Language
 import com.example.ui.theme.RigourBackground
 import com.example.ui.theme.RigourBullish
@@ -46,7 +48,8 @@ fun ForexScreen(
     lang: Language,
     onBack: () -> Unit,
     onSelectPair: (ForexPair) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    news: List<ForexNewsItem> = emptyList()
 ) {
     val pages = ForexPairs.ALL_PAGES
     val pagerState = rememberPagerState(pageCount = { pages.size })
@@ -106,6 +109,9 @@ fun ForexScreen(
             }
         }
 
+
+        // News Ticker (live from Finnhub)
+        NewsTicker(news = news)
         // Page title
         Text(
             text = pageTitles.getOrElse(pagerState.currentPage) { "" },

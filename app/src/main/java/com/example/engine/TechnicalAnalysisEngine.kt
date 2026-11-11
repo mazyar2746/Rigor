@@ -108,7 +108,7 @@ object TechnicalAnalysisEngine {
         // --- محاسبه سطوح پیوت ---
         val refCandle = if (normalizedCandles.size >= 2) normalizedCandles[normalizedCandles.size - 2] else normalizedCandles.last()
         val h = maxOf(refCandle.high, refCandle.low, refCandle.close)
-        val l = minOf(refCandle.high, refCandle.low, refCandle.close).coerceAtLeast(1.0)
+        val l = minOf(refCandle.high, refCandle.low, refCandle.close).coerceAtMost(h)
         val c = refCandle.close.coerceIn(l, h)
         val pivot = (h + l + c) / 3.0
         val r2 = max(pivot + (h - l), (2.0 * pivot) - l)
