@@ -256,6 +256,61 @@ class ForexRemoteDataSource(
         return@withContext result
     }
 
+    /**
+     * Fetch quotes for multiple symbols using Finnhub (60 req/min free tier).
+     * Finnhub symbol format: OANDA:EUR_USD, OANDA:GBP_USD, etc.
+     * Falls back to Twelve Data if Finnhub fails.
+     */
+    suspend fun fetchQuotesFromFinnhub(symbols: List<String>): Map<String, ForexQuote> = withContext(Dispatchers.IO) {
+        val result = mutableMapOf<String, ForexQuote>()
+        if (symbols.isEmpty()) return@withContext result
+
+        for (sym in symbols) {
+            try {
+                val finnhubSymbol = "OANDA:" + sym.uppercase().replace("/", "_")
+                val url = "https://finnhub.io/api/v1/quote?symbol=$finnhubSymbol&token=${RigorConfig.FINNHUB_API_KEY}"
+                val request = Request.Builder().url(url).build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        Log.w(TAG, "Finnhub HTTP ${response.code} for $finnhubSymbol")
+                        return@use
+                    }
+                    val body = response.body?.string() ?: return@use
+                    val json = gson.fromJson(body, JsonObject::class.java)
+
+                    val price = json.get("c")?.asDouble ?: 0.0
+                    if (price <= 0.0) {
+                        Log.w(TAG, "Finnhub no price for $finnhubSymbol")
+                        return@use
+                    }
+
+                    val change = json.get("d")?.asDouble ?: 0.0
+                    val changePct = json.get("dp")?.asDouble ?: 0.0
+                    val high = json.get("h")?.asDouble ?: price
+                    val low = json.get("l")?.asDouble ?: price
+
+                    val key = sym.uppercase()
+                    val quote = ForexQuote(
+                        symbol = key,
+                        price = price,
+                        change = change,
+                        changePercent = changePct,
+                        dayHigh = high,
+                        dayLow = low
+                    )
+                    result[key] = quote
+                    quoteCache[key] = CachedQuote(quote, System.currentTimeMillis())
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "Finnhub fetch failed for $sym: ${t.message}")
+            }
+        }
+
+        Log.d(TAG, "Finnhub loaded ${result.size}/${symbols.size} quotes")
+        return@withContext result
+    }
+
     companion object {
         private const val TAG = "ForexRemote"
     }

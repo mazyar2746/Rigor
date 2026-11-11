@@ -7,6 +7,7 @@ package com.example.config
  */
 object RigorConfig {
     const val TWELVE_DATA_API_KEY = "03f1e4b52ff8458faad388ad52a5fcb6"
+    const val FINNHUB_API_KEY = "dbq4ar9r01qr0r9rbe4g"
     const val TWELVE_DATA_BASE_URL = "https://api.twelvedata.com/"
 
     // App & Identity

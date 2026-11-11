@@ -53,7 +53,7 @@ class ForexRepository(
         _isLoading.value = true
         _errorMessage.value = null
         try {
-            val batch = remote.fetchQuotes(symbols)
+            val batch = remote.fetchQuotesFromFinnhub(symbols)
             if (batch.isNotEmpty()) {
                 _quotes.value = _quotes.value + batch
                 _lastUpdated.value = System.currentTimeMillis()
