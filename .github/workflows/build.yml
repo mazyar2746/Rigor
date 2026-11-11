@@ -27,21 +27,17 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x gradlew
 
-      - name: Build Release APK
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > app/release.keystore
+
+      - name: Build & Sign Release APK
         run: |
           ./gradlew assembleRelease --no-daemon --stacktrace
-
-      - name: Sign APK
-        id: sign_apk
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
-          BUILD_TOOLS_VERSION: "34.0.0"
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Get version
         id: version
@@ -53,7 +49,7 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p release-out
-          cp ${{ steps.sign_apk.outputs.signedReleaseFile }} release-out/Rigor-${{ steps.version.outputs.version }}.apk
+          cp app/build/outputs/apk/release/app-release.apk release-out/Rigor-${{ steps.version.outputs.version }}.apk
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
