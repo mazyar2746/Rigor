@@ -49,7 +49,7 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p release-out
-          cp app/build/outputs/apk/release/app-release.apk release-out/Rigor-${{ steps.version.outputs.version }}.apk
+          find app/build/outputs/apk/release -name "*.apk" -exec cp {} release-out/Rigor-${{ steps.version.outputs.version }}.apk \;
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
