@@ -26,16 +26,16 @@ android {
   // and updating Android apps in AI Studio.
   signingConfigs {
     create("release") {
-      storeFile = file("${rootDir}/debug.keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
+      storeFile = file("${rootDir}/release.keystore")
+      storePassword = "rigornasirihashem"
+      keyAlias = "my-key-alias"
+      keyPassword = "rigornasirihashem"
     }
     create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
+      storeFile = file("${rootDir}/release.keystore")
+      storePassword = "rigornasirihashem"
+      keyAlias = "my-key-alias"
+      keyPassword = "rigornasirihashem"
     }
   }
 
@@ -46,7 +46,7 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       // Do not remove or modify this signingConfig assignment. It is necessary for Android apps in
       // AI Studio.
-      val ks = file("${rootDir}/debug.keystore")
+      val ks = file("${rootDir}/release.keystore")
       if (ks.exists()) {
         signingConfig = signingConfigs.getByName("release")
       }
