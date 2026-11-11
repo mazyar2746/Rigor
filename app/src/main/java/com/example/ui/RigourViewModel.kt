@@ -11,6 +11,11 @@ import com.example.data.model.SubscriptionPlan
 import com.example.data.model.TechnicalAnalysisResult
 import com.example.data.model.UserSubscription
 import com.example.data.repository.CryptoRepository
+import com.example.data.repository.ForexRepository
+import com.example.data.model.ForexPair
+import com.example.data.model.ForexPairs
+import com.example.data.model.ForexQuote
+import com.example.data.model.ForexAnalysisResult
 import com.example.data.repository.SubscriptionRepository
 import com.example.i18n.Language
 import com.example.i18n.StringsDictionary
@@ -35,12 +40,15 @@ sealed class Screen {
     object Subscription : Screen()
     object ContactUs : Screen()
     object Settings : Screen()
+    object Forex : Screen()
+    data class ForexDetail(val symbol: String) : Screen()
 }
 
 class RigourViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = RigourDatabase.getInstance(application)
     private val cryptoRepository = CryptoRepository(database.favoritesDao(), database.coinCacheDao(), context = application)
+    private val forexRepository = ForexRepository()
     private val subscriptionRepository = SubscriptionRepository(database.subscriptionDao())
 
     // App Navigation
@@ -336,5 +344,63 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     override fun onCleared() {
         super.onCleared()
         refreshJob?.cancel()
+    }
+
+    // ============================================================
+    // FOREX STATE & FUNCTIONS
+    // ============================================================
+
+    // Live quotes from ForexRepository
+    val forexQuotes: StateFlow<Map<String, ForexQuote>> = forexRepository.quotes
+    val forexAnalyses: StateFlow<Map<String, ForexAnalysisResult>> = forexRepository.analyses
+    val isForexLoading: StateFlow<Boolean> = forexRepository.isLoading
+    val forexErrorMessage: StateFlow<String?> = forexRepository.errorMessage
+    val forexLastUpdated: StateFlow<Long> = forexRepository.lastUpdated
+
+    // Currently selected forex pair (for detail screen)
+    private val _selectedForexPair = MutableStateFlow<ForexPair?>(null)
+    val selectedForexPair: StateFlow<ForexPair?> = _selectedForexPair.asStateFlow()
+
+    // --- Navigation: Forex ---
+
+    fun navigateToForex() {
+        _currentScreen.value = Screen.Forex
+        // Load first page (10 majors) automatically
+        viewModelScope.launch {
+            forexRepository.loadFirstPage()
+        }
+    }
+
+    fun selectForexPair(pair: ForexPair) {
+        _selectedForexPair.value = pair
+        _currentScreen.value = Screen.ForexDetail(pair.symbol)
+        // Load candles + analysis for this pair
+        viewModelScope.launch {
+            forexRepository.analyzePair(pair.symbol, "1h", 120)
+        }
+    }
+
+    fun refreshForexQuotes(pairSymbols: List<String>) {
+        viewModelScope.launch {
+            forexRepository.loadQuotesForSymbols(pairSymbols)
+        }
+    }
+
+    fun refreshForexDetail() {
+        _selectedForexPair.value?.let { pair ->
+            viewModelScope.launch {
+                forexRepository.analyzePair(pair.symbol, "1h", 120)
+            }
+        }
+    }
+
+    fun getCachedForexAnalysis(symbol: String): ForexAnalysisResult? {
+        return forexRepository.cachedAnalysis(symbol)
+    }
+
+    fun getCachedForexCandles(symbol: String) = forexRepository.cachedCandles(symbol)
+
+    fun clearForexError() {
+        forexRepository.clearError()
     }
 }
