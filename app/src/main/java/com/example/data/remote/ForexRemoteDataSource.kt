@@ -335,7 +335,7 @@ class ForexRemoteDataSource(
                     if (count >= limit) break
                     val obj = elem.asJsonObject
                     val headline = obj.get("headline")?.asString ?: continue
-                    val id = obj.get("id")?.asLong ?: System.currentTimeMillis()
+                    val id = System.currentTimeMillis()
                     val summary = obj.get("summary")?.asString ?: ""
                     val source = obj.get("source")?.asString ?: ""
                     val newsUrl = obj.get("url")?.asString ?: ""
@@ -361,6 +361,106 @@ class ForexRemoteDataSource(
             Log.w(TAG, "fetchForexNews failed: ${t.message}")
         }
         return@withContext items
+    }
+
+    /**
+     * Fetch quotes using open.er-api.com (free, no limits, no API key).
+     * Converts all pairs into their quote values based on USD.
+     */
+    suspend fun fetchQuotesFromExchangeRate(): Map<String, ForexQuote> = withContext(Dispatchers.IO) {
+        val result = mutableMapOf<String, ForexQuote>()
+        try {
+            val url = "https://open.er-api.com/v6/latest/USD"
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext result
+                val body = response.body?.string() ?: return@withContext result
+                val json = gson.fromJson(body, JsonObject::class.java)
+                val rates = json.getAsJsonObject("rates") ?: return@withContext result
+
+                fun getRate(base: String, quote: String): Double {
+                    if (base == "USD") return rates.get(quote)?.asDouble ?: 0.0
+                    if (quote == "USD") return 1.0 / (rates.get(base)?.asDouble ?: 1.0)
+                    val b = rates.get(base)?.asDouble ?: 1.0
+                    val q = rates.get(quote)?.asDouble ?: 1.0
+                    return q / b
+                }
+
+                for (pair in ForexPairs.ALL) {
+                    val parts = pair.symbol.split("/")
+                    if (parts.size == 2) {
+                        val base = parts[0]
+                        val quote = parts[1]
+                        val price = getRate(base, quote)
+                        if (price > 0.0) {
+                            val key = pair.symbol.uppercase()
+                            result[key] = ForexQuote(
+                                symbol = key,
+                                price = price,
+                                change = 0.0,
+                                changePercent = 0.0,
+                                dayHigh = price,
+                                dayLow = price
+                            )
+                        }
+                    }
+                }
+            }
+            Log.d(TAG, "ExchangeRate loaded ${result.size} quotes")
+        } catch (t: Throwable) {
+            Log.w(TAG, "fetchQuotesFromExchangeRate failed: ${t.message}")
+        }
+        return@withContext result
+    }
+
+    /**
+     * Fetch quotes using open.er-api.com (free, no limits, no API key).
+     * Converts all pairs into their quote values based on USD.
+     */
+    suspend fun fetchQuotesFromExchangeRate(): Map<String, ForexQuote> = withContext(Dispatchers.IO) {
+        val result = mutableMapOf<String, ForexQuote>()
+        try {
+            val url = "https://open.er-api.com/v6/latest/USD"
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext result
+                val body = response.body?.string() ?: return@withContext result
+                val json = gson.fromJson(body, JsonObject::class.java)
+                val rates = json.getAsJsonObject("rates") ?: return@withContext result
+
+                fun getRate(base: String, quote: String): Double {
+                    if (base == "USD") return rates.get(quote)?.asDouble ?: 0.0
+                    if (quote == "USD") return 1.0 / (rates.get(base)?.asDouble ?: 1.0)
+                    val b = rates.get(base)?.asDouble ?: 1.0
+                    val q = rates.get(quote)?.asDouble ?: 1.0
+                    return q / b
+                }
+
+                for (pair in ForexPairs.ALL) {
+                    val parts = pair.symbol.split("/")
+                    if (parts.size == 2) {
+                        val base = parts[0]
+                        val quote = parts[1]
+                        val price = getRate(base, quote)
+                        if (price > 0.0) {
+                            val key = pair.symbol.uppercase()
+                            result[key] = ForexQuote(
+                                symbol = key,
+                                price = price,
+                                change = 0.0,
+                                changePercent = 0.0,
+                                dayHigh = price,
+                                dayLow = price
+                            )
+                        }
+                    }
+                }
+            }
+            Log.d(TAG, "ExchangeRate loaded ${result.size} quotes")
+        } catch (t: Throwable) {
+            Log.w(TAG, "fetchQuotesFromExchangeRate failed: ${t.message}")
+        }
+        return@withContext result
     }
 
     companion object {
