@@ -1,17 +1,19 @@
-name: Build Android APK
+name: Build Rigor APK
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ main, master ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    name: Build & Package APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -19,67 +21,52 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
-      - name: Make Gradlew Executable
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: wrapper
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
       - name: Build Release APK
-        run: |
-          ./gradlew assembleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --stacktrace
 
-      - name: Sign APK with Keystore
-        env:
-          KEYSTORE_PASSWORD: "rigornasirihashem"
-          KEY_ALIAS: "my-key-alias"
-          KEY_PASSWORD: "rigornasirihashem"
-        run: |
-          UNSIGNED_APK=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)
-          if [ -z "$UNSIGNED_APK" ]; then
-            echo "Error: Unsigned release APK not found!"
-            exit 1
-          fi
-          echo "Found unsigned APK at: $UNSIGNED_APK"
-
-          BT_VERSION=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)
-          ZIPALIGN="$ANDROID_HOME/build-tools/$BT_VERSION/zipalign"
-          APKSIGNER="$ANDROID_HOME/build-tools/$BT_VERSION/apksigner"
-
-          echo "Using Android Build-Tools version: $BT_VERSION"
-
-          # 1. Align the unsigned APK
-          "$ZIPALIGN" -v -p 4 "$UNSIGNED_APK" app-aligned.apk
-
-          # 2. Ensure Keystore exists (use release.keystore from repo or create with keytool)
-          if [ ! -f release.keystore ]; then
-            echo "Generating release.keystore on runner..."
-            keytool -genkeypair -v -keystore release.keystore \
-              -storepass "$KEYSTORE_PASSWORD" \
-              -alias "$KEY_ALIAS" \
-              -keypass "$KEY_PASSWORD" \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -dname "CN=Rigor, OU=Rigor, O=Rigor, L=Tehran, C=IR"
-          else
-            echo "Using committed release.keystore from repository."
-          fi
-
-          # Verify keystore integrity with keytool
-          keytool -list -keystore release.keystore -storepass "$KEYSTORE_PASSWORD" > /dev/null
-          echo "Keystore successfully verified!"
-
-          # 3. Sign the APK using apksigner
-          "$APKSIGNER" sign --ks release.keystore \
-            --ks-pass "pass:$KEYSTORE_PASSWORD" \
-            --key-pass "pass:$KEY_PASSWORD" \
-            --ks-key-alias "$KEY_ALIAS" \
-            --out app-release-signed.apk app-aligned.apk
-
-          # 4. Verify signature
-          "$APKSIGNER" verify --verbose app-release-signed.apk
-
-      - name: Upload Signed Release APK
-        uses: actions/upload-artifact@v4
+      - name: Sign APK
+        id: sign
+        uses: r0adkll/sign-android-release@v1
         with:
-          name: Rigor-Release-APK
-          path: app-release-signed.apk
-          if-no-files-found: error
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Get version name
+        id: version
+        run: |
+          VERSION=$(grep -m1 'versionName' app/build.gradle* | sed -E 's/.*versionName[[:space:]]*"?([^"]+)"?.*/\1/' | tr -d ' ')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "date=$(date +%Y%m%d-%H%M)" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        run: |
+          mkdir -p release-out
+          cp ${{ steps.sign.outputs.signedReleaseFile }} release-out/Rigor-${{ steps.version.outputs.version }}-${{ steps.version.outputs.date }}.apk
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}-${{ steps.version.outputs.date }}
+          name: Rigor v${{ steps.version.outputs.version }} (${{ steps.version.outputs.date }})
+          body: |
+            ✅ بیلد خودکار Rigor
+            - نسخه: ${{ steps.version.outputs.version }}
+            - تاریخ: ${{ steps.version.outputs.date }}
+            - بخش‌ها: کریپتو، بورس، فارکس
+          files: release-out/*.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
