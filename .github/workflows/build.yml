@@ -1,8 +1,8 @@
-name: Build Rigor APK
+name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 permissions:
@@ -10,10 +10,11 @@ permissions:
 
 jobs:
   build:
+    name: Build & Package APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -21,20 +22,17 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: wrapper
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+      - name: Make Gradlew Executable
+        run: chmod +x gradlew
 
       - name: Build Release APK
-        run: ./gradlew assembleRelease --stacktrace
+        run: |
+          ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Sign APK
-        id: sign
+        id: sign_apk
         uses: r0adkll/sign-android-release@v1
         with:
           releaseDirectory: app/build/outputs/apk/release
@@ -42,10 +40,8 @@ jobs:
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
 
-      - name: Get version name
+      - name: Get version
         id: version
         run: |
           VERSION=$(grep -m1 'versionName' app/build.gradle* | sed -E 's/.*versionName[[:space:]]*"?([^"]+)"?.*/\1/' | tr -d ' ')
@@ -55,18 +51,13 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p release-out
-          cp ${{ steps.sign.outputs.signedReleaseFile }} release-out/Rigor-${{ steps.version.outputs.version }}-${{ steps.version.outputs.date }}.apk
+          cp ${{ steps.sign_apk.outputs.signedReleaseFile }} release-out/Rigor-${{ steps.version.outputs.version }}.apk
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}-${{ steps.version.outputs.date }}
-          name: Rigor v${{ steps.version.outputs.version }} (${{ steps.version.outputs.date }})
-          body: |
-            ✅ بیلد خودکار Rigor
-            - نسخه: ${{ steps.version.outputs.version }}
-            - تاریخ: ${{ steps.version.outputs.date }}
-            - بخش‌ها: کریپتو، بورس، فارکس
+          name: Rigor v${{ steps.version.outputs.version }}
           files: release-out/*.apk
           draft: false
           prerelease: false
