@@ -112,9 +112,9 @@ fun ForexScreen(
 
 
         // News Ticker (live from Finnhub)
-        NewsTicker(news = news)
+        NewsTicker(news = news, isRtl = false)
         Spacer(modifier = Modifier.height(4.dp))
-        NewsTicker(news = persianNews)
+        NewsTicker(news = persianNews, isRtl = true)
         // Page title
         Text(
             text = pageTitles.getOrElse(pagerState.currentPage) { "" },

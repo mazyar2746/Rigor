@@ -9,11 +9,14 @@ import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.ForexNewsItem
@@ -22,16 +25,16 @@ import com.example.ui.theme.RigourSurface
 
 /**
  * NewsTicker - A true continuous scrolling marquee (reel).
- * No dots, no pagination. Just a continuous smooth scroll.
+ * Supports both LTR (English) and RTL (Persian) directions.
  */
 @Composable
 fun NewsTicker(
     news: List<ForexNewsItem>,
+    isRtl: Boolean = false, // پارامتر جدید برای تشخیص جهت
     modifier: Modifier = Modifier
 ) {
     if (news.isEmpty()) return
 
-    // Combine all headlines into a single long string with separators
     val combinedNews = news.joinToString("   ★   ") { it.headline }
 
     Row(
@@ -43,7 +46,6 @@ fun NewsTicker(
             .padding(horizontal = 10.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // News icon
         Box(
             modifier = Modifier
                 .size(24.dp)
@@ -61,20 +63,24 @@ fun NewsTicker(
 
         Spacer(modifier = Modifier.width(10.dp))
 
-        // The actual scrolling text
-        Text(
-            text = combinedNews,
-            color = Color.White,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1,
-            modifier = Modifier
-                .weight(1f)
-                .basicMarquee(
-                    iterations = Int.MAX_VALUE,
-                    initialDelayMillis = 500,
-                    velocity = 60.dp // سرعت حرکت نوار
-                )
-        )
+        // اعمال جهت‌دهی به متن
+        CompositionLocalProvider(
+            LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
+        ) {
+            Text(
+                text = combinedNews,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                modifier = Modifier
+                    .weight(1f)
+                    .basicMarquee(
+                        iterations = Int.MAX_VALUE,
+                        initialDelayMillis = 500,
+                        velocity = 60.dp
+                    )
+            )
+        }
     }
 }
