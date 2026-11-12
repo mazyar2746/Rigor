@@ -3,11 +3,12 @@ package com.example.data.remote
 import android.util.Log
 import com.example.config.RigorConfig
 import com.example.data.model.Candle
-import com.example.data.model.ForexQuote
 import com.example.data.model.ForexPairs
+import com.example.data.model.ForexQuote
 import com.example.data.model.ForexNewsItem
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -16,17 +17,11 @@ import java.util.concurrent.TimeUnit
 
 /**
  * ForexRemoteDataSource
- *
- * Talks to Twelve Data API (https://twelvedata.com).
- * Free plan: 800 requests/day, 8 requests/minute.
- *
- * We implement a small in-memory rate limiter (min 8s between calls)
- * and a per-symbol quote cache (30s TTL) to stay under the limit.
+ * Handles fetching data from Twelve Data, Finnhub, open.er-api.com, and RSS feeds.
  */
 class ForexRemoteDataSource(
     private val apiKey: String = RigorConfig.TWELVE_DATA_API_KEY
 ) {
-
     private val client = OkHttpClient.Builder()
         .connectTimeout(RigorConfig.HTTP_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(RigorConfig.HTTP_READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -34,85 +29,51 @@ class ForexRemoteDataSource(
 
     private val gson = Gson()
 
-    // --- Simple in-memory caches ---
     private data class CachedQuote(val quote: ForexQuote, val timestamp: Long)
     private data class CachedCandles(val candles: List<Candle>, val timestamp: Long)
 
     private val quoteCache = mutableMapOf<String, CachedQuote>()
     private val candleCache = mutableMapOf<String, CachedCandles>()
-
-    private val quoteTtlMs = 30_000L                 // 30s for quotes
-    private val candleTtlMs = RigorConfig.CANDLE_CACHE_TTL_MS  // 30 min for candles
-
-    @Volatile
-    private var lastRequestAt: Long = 0L
-    private val minIntervalMs = 8_500L               // 8.5s to stay safely under 8/min
+    private val quoteTtlMs = 30_000L
+    private val candleTtlMs = 60_000L
+    
+    private var lastRequestTime = 0L
+    private val minRequestIntervalMs = 8_000L // 8 seconds throttle
 
     private suspend fun throttle() {
         val now = System.currentTimeMillis()
-        val elapsed = now - lastRequestAt
-        if (elapsed < minIntervalMs) {
-            val wait = minIntervalMs - elapsed
-            Log.d(TAG, "Throttling forex API: waiting ${wait}ms")
-            kotlinx.coroutines.delay(wait)
+        val elapsed = now - lastRequestTime
+        if (elapsed < minRequestIntervalMs) {
+            kotlinx.coroutines.delay(minRequestIntervalMs - elapsed)
         }
-        lastRequestAt = System.currentTimeMillis()
+        lastRequestTime = System.currentTimeMillis()
     }
 
-    /**
-     * Fetch a live quote for a pair (e.g. "EUR/USD").
-     * Returns null on failure (network, rate limit, bad key, etc.)
-     */
+    // --- Twelve Data (for single quote and candles) ---
+
     suspend fun fetchQuote(symbol: String): ForexQuote? = withContext(Dispatchers.IO) {
         val normalized = symbol.uppercase()
-
-        // Cache hit?
-        quoteCache[normalized]?.let { cached ->
-            if (System.currentTimeMillis() - cached.timestamp < quoteTtlMs) {
-                Log.d(TAG, "Quote cache hit: $normalized")
-                return@withContext cached.quote
-            }
+        quoteCache[normalized]?.let {
+            if (System.currentTimeMillis() - it.timestamp < quoteTtlMs) return@withContext it.quote
         }
-
         try {
             throttle()
             val url = "${RigorConfig.TWELVE_DATA_BASE_URL}quote?symbol=$normalized&apikey=$apiKey"
             val request = Request.Builder().url(url).build()
-
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    Log.w(TAG, "Quote HTTP ${response.code} for $normalized")
-                    return@withContext null
-                }
-
+                if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
                 val json = gson.fromJson(body, JsonObject::class.java)
-
-                // Twelve Data returns {code: ..., message: ..., status: "error"} on failure
-                if (json.has("status") && json.get("status").asString == "error") {
-                    val msg = json.get("message")?.asString ?: "unknown"
-                    Log.w(TAG, "Quote API error for $normalized: $msg")
-                    return@withContext null
-                }
-
-                val price = json.get("close")?.asString?.toDoubleOrNull()
-                    ?: json.get("price")?.asString?.toDoubleOrNull()
-                    ?: return@withContext null
-
-                val change = json.get("change")?.asString?.toDoubleOrNull() ?: 0.0
-                val changePct = json.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0
-                val high = json.get("high")?.asString?.toDoubleOrNull() ?: price
-                val low = json.get("low")?.asString?.toDoubleOrNull() ?: price
-
+                if (json.has("status") && json.get("status").asString == "error") return@withContext null
+                val price = json.get("close")?.asString?.toDoubleOrNull() ?: return@withContext null
                 val quote = ForexQuote(
                     symbol = normalized,
                     price = price,
-                    change = change,
-                    changePercent = changePct,
-                    dayHigh = high,
-                    dayLow = low
+                    change = json.get("change")?.asString?.toDoubleOrNull() ?: 0.0,
+                    changePercent = json.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0,
+                    dayHigh = json.get("high")?.asString?.toDoubleOrNull() ?: price,
+                    dayLow = json.get("low")?.asString?.toDoubleOrNull() ?: price
                 )
-
                 quoteCache[normalized] = CachedQuote(quote, System.currentTimeMillis())
                 return@withContext quote
             }
@@ -122,260 +83,77 @@ class ForexRemoteDataSource(
         }
     }
 
-    /**
-     * Fetch candles for a pair. Timeframe examples: "1h", "4h", "1day".
-     * Returns null on failure.
-     */
-    suspend fun fetchCandles(
-        symbol: String,
-        interval: String = "1h",
-        outputSize: Int = 120
-    ): List<Candle>? = withContext(Dispatchers.IO) {
-        val normalized = symbol.uppercase()
-        val cacheKey = "$normalized|$interval|$outputSize"
-
-        candleCache[cacheKey]?.let { cached ->
-            if (System.currentTimeMillis() - cached.timestamp < candleTtlMs) {
-                Log.d(TAG, "Candle cache hit: $cacheKey")
-                return@withContext cached.candles
-            }
-        }
-
-        try {
-            throttle()
-            val url = "${RigorConfig.TWELVE_DATA_BASE_URL}time_series" +
-                "?symbol=$normalized" +
-                "&interval=$interval" +
-                "&outputsize=$outputSize" +
-                "&apikey=$apiKey"
-
-            val request = Request.Builder().url(url).build()
-
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    Log.w(TAG, "Candles HTTP ${response.code} for $cacheKey")
-                    return@withContext null
-                }
-
-                val body = response.body?.string() ?: return@withContext null
-                val json = gson.fromJson(body, JsonObject::class.java)
-
-                if (json.has("status") && json.get("status").asString == "error") {
-                    val msg = json.get("message")?.asString ?: "unknown"
-                    Log.w(TAG, "Candles API error for $cacheKey: $msg")
-                    return@withContext null
-                }
-
-                val values = json.getAsJsonArray("values") ?: return@withContext null
-                if (values.size() == 0) return@withContext null
-
-                val result = ArrayList<Candle>(values.size())
-                for (i in 0 until values.size()) {
-                    val item = values[i].asJsonObject
-                    val open = item.get("open")?.asString?.toDoubleOrNull() ?: continue
-                    val high = item.get("high")?.asString?.toDoubleOrNull() ?: continue
-                    val low = item.get("low")?.asString?.toDoubleOrNull() ?: continue
-                    val close = item.get("close")?.asString?.toDoubleOrNull() ?: continue
-                    val volume = item.get("volume")?.asString?.toDoubleOrNull() ?: 0.0
-                    val dt = item.get("datetime")?.asString
-
-                    val ts = parseTimestamp(dt)
-                    result.add(Candle(timestamp = ts, open = open, high = high, low = low, close = close, volume = volume))
-                }
-
-                // Twelve Data returns newest first; reverse to oldest->newest for charts.
-                result.reverse()
-
-                candleCache[cacheKey] = CachedCandles(result, System.currentTimeMillis())
-                return@withContext result
-            }
-        } catch (t: Throwable) {
-            Log.w(TAG, "Candles fetch failed for $cacheKey: ${t.message}")
-            return@withContext null
-        }
-    }
-
-    private fun parseTimestamp(dt: String?): Long {
-        if (dt.isNullOrBlank()) return System.currentTimeMillis()
-        // Format: "2024-11-10 14:00:00" or "2024-11-10"
-        return try {
-            val pattern = if (dt.contains(":")) "yyyy-MM-dd HH:mm:ss" else "yyyy-MM-dd"
-            val fmt = java.text.SimpleDateFormat(pattern, java.util.Locale.US)
-            fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
-            fmt.parse(dt)?.time ?: System.currentTimeMillis()
-        } catch (t: Throwable) {
-            System.currentTimeMillis()
-        }
-    }
-
-    /** Optional: batch quote fetch for multiple symbols (uses /quote?symbol=A,B,C). */
     suspend fun fetchQuotes(symbols: List<String>): Map<String, ForexQuote> = withContext(Dispatchers.IO) {
         val result = mutableMapOf<String, ForexQuote>()
         if (symbols.isEmpty()) return@withContext result
-
         try {
             throttle()
             val joined = symbols.joinToString(",") { it.uppercase() }
             val url = "${RigorConfig.TWELVE_DATA_BASE_URL}quote?symbol=$joined&apikey=$apiKey"
             val request = Request.Builder().url(url).build()
-
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext result
                 val body = response.body?.string() ?: return@withContext result
                 val json = gson.fromJson(body, JsonObject::class.java)
-
-                // Single symbol returns object, multiple returns object of objects
                 if (symbols.size == 1) {
                     val sym = symbols.first().uppercase()
                     val price = json.get("close")?.asString?.toDoubleOrNull() ?: return@withContext result
-                    result[sym] = ForexQuote(
-                        sym, price,
-                        json.get("change")?.asString?.toDoubleOrNull() ?: 0.0,
-                        json.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0,
-                        json.get("high")?.asString?.toDoubleOrNull() ?: price,
-                        json.get("low")?.asString?.toDoubleOrNull() ?: price
-                    )
+                    result[sym] = ForexQuote(sym, price, json.get("change")?.asString?.toDoubleOrNull() ?: 0.0, json.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0, json.get("high")?.asString?.toDoubleOrNull() ?: price, json.get("low")?.asString?.toDoubleOrNull() ?: price)
                 } else {
                     for (sym in symbols) {
                         val key = sym.uppercase()
                         val obj = json.getAsJsonObject(key) ?: continue
                         if (obj.has("status") && obj.get("status").asString == "error") continue
                         val price = obj.get("close")?.asString?.toDoubleOrNull() ?: continue
-                        result[key] = ForexQuote(
-                            key, price,
-                            obj.get("change")?.asString?.toDoubleOrNull() ?: 0.0,
-                            obj.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0,
-                            obj.get("high")?.asString?.toDoubleOrNull() ?: price,
-                            obj.get("low")?.asString?.toDoubleOrNull() ?: price
-                        )
+                        result[key] = ForexQuote(key, price, obj.get("change")?.asString?.toDoubleOrNull() ?: 0.0, obj.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0, obj.get("high")?.asString?.toDoubleOrNull() ?: price, obj.get("low")?.asString?.toDoubleOrNull() ?: price)
                     }
                 }
             }
         } catch (t: Throwable) {
-            Log.w(TAG, "Batch quote fetch failed: ${t.message}")
+            Log.w(TAG, "Batch quotes failed: ${t.message}")
         }
-
         return@withContext result
     }
 
-    /**
-     * Fetch quotes for multiple symbols using Finnhub (60 req/min free tier).
-     * Finnhub symbol format: OANDA:EUR_USD, OANDA:GBP_USD, etc.
-     * Falls back to Twelve Data if Finnhub fails.
-     */
-    suspend fun fetchQuotesFromFinnhub(symbols: List<String>): Map<String, ForexQuote> = withContext(Dispatchers.IO) {
-        val result = mutableMapOf<String, ForexQuote>()
-        if (symbols.isEmpty()) return@withContext result
-
-        for (sym in symbols) {
-            try {
-                val finnhubSymbol = "OANDA:" + sym.uppercase().replace("/", "_")
-                val url = "https://finnhub.io/api/v1/quote?symbol=$finnhubSymbol&token=${RigorConfig.FINNHUB_API_KEY}"
-                val request = Request.Builder().url(url).build()
-
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        Log.w(TAG, "Finnhub HTTP ${response.code} for $finnhubSymbol")
-                        return@use
-                    }
-                    val body = response.body?.string() ?: return@use
-                    val json = gson.fromJson(body, JsonObject::class.java)
-
-                    val price = json.get("c")?.asDouble ?: 0.0
-                    if (price <= 0.0) {
-                        Log.w(TAG, "Finnhub no price for $finnhubSymbol")
-                        return@use
-                    }
-
-                    val change = json.get("d")?.asDouble ?: 0.0
-                    val changePct = json.get("dp")?.asDouble ?: 0.0
-                    val high = json.get("h")?.asDouble ?: price
-                    val low = json.get("l")?.asDouble ?: price
-
-                    val key = sym.uppercase()
-                    val quote = ForexQuote(
-                        symbol = key,
-                        price = price,
-                        change = change,
-                        changePercent = changePct,
-                        dayHigh = high,
-                        dayLow = low
-                    )
-                    result[key] = quote
-                    quoteCache[key] = CachedQuote(quote, System.currentTimeMillis())
-                }
-            } catch (t: Throwable) {
-                Log.w(TAG, "Finnhub fetch failed for $sym: ${t.message}")
-            }
+    suspend fun fetchCandles(symbol: String, interval: String = "1h", outputSize: Int = 120): List<Candle>? = withContext(Dispatchers.IO) {
+        val normalized = symbol.uppercase()
+        val cacheKey = "$normalized|$interval|$outputSize"
+        candleCache[cacheKey]?.let {
+            if (System.currentTimeMillis() - it.timestamp < candleTtlMs) return@withContext it.candles
         }
-
-        Log.d(TAG, "Finnhub loaded ${result.size}/${symbols.size} quotes")
-        return@withContext result
-    }
-
-    /**
-     * Fetch live forex news from Finnhub (category=forex).
-     * Returns top N headlines. Used for the News Ticker on Forex screen.
-     */
-    suspend fun fetchForexNews(limit: Int = 15): List<ForexNewsItem> = withContext(Dispatchers.IO) {
-        val items = mutableListOf<ForexNewsItem>()
         try {
-            // Using RSS2JSON for free, no-API-key Forex news
-            val url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.forexlive.com%2Ffeed%2Fnews"
+            throttle()
+            val url = "${RigorConfig.TWELVE_DATA_BASE_URL}time_series?symbol=$normalized&interval=$interval&outputsize=$outputSize&apikey=$apiKey"
             val request = Request.Builder().url(url).build()
-
             client.newCall(request).execute().use { response ->
-                    Log.w(TAG, "News API HTTP ${response.code}")
-                    return@withContext items
-                }
-                val body = response.body?.string() ?: return@withContext items
+                if (!response.isSuccessful) return@withContext null
+                val body = response.body?.string() ?: return@withContext null
                 val json = gson.fromJson(body, JsonObject::class.java)
-                
-                val itemsArray = json.getAsJsonArray("items") ?: return@withContext items
-
-                for (elem in itemsArray) {
-                    if (items.size >= limit) break
-                    val obj = elem.asJsonObject
-                    val headline = obj.get("title")?.asString ?: continue
-                    val summary = obj.get("description")?.asString ?: ""
-                    val urlStr = obj.get("link")?.asString ?: ""
-                    
-                    items.add(
-                        ForexNewsItem(
-                            id = System.currentTimeMillis(),
-                            headline = headline,
-                            summary = summary,
-                            source = "ForexLive",
-                            url = urlStr,
-                            datetime = System.currentTimeMillis(),
-                            imageUrl = null
-                        )
-                    )
+                val values = json.getAsJsonArray("values") ?: return@withContext null
+                val candles = mutableListOf<Candle>()
+                for (i in values.size() - 1 downTo 0) {
+                    val v = values[i].asJsonObject
+                    val close = v.get("close").asString.toDoubleOrNull() ?: continue
+                    candles.add(Candle(
+                        timestamp = 0L,
+                        open = v.get("open").asString.toDoubleOrNull() ?: close,
+                        high = v.get("high").asString.toDoubleOrNull() ?: close,
+                        low = v.get("low").asString.toDoubleOrNull() ?: close,
+                        close = close,
+                        volume = v.get("volume")?.asString?.toDoubleOrNull() ?: 0.0
+                    ))
                 }
+                candleCache[cacheKey] = CachedCandles(candles, System.currentTimeMillis())
+                return@withContext candles
             }
-            Log.d(TAG, "Loaded ${items.size} forex news items from RSS")
         } catch (t: Throwable) {
-            Log.e(TAG, "fetchForexNews failed: ${t.message}", t)
+            Log.w(TAG, "Candles failed for $normalized: ${t.message}")
+            return@withContext null
         }
-        return@withContext items
     }
 
-    /**
-     * Fetch quotes using open.er-api.com (free, no limits, no API key).
-     * Converts all pairs into their quote values based on USD.
-     */
-    
+    // --- open.er-api.com (Unlimited batch quotes) ---
 
-    /**
-     * Fetch quotes using open.er-api.com (free, no limits, no API key).
-     * Converts all pairs into their quote values based on USD.
-     */
-    
-
-    /**
-     * Fetch quotes using open.er-api.com (free, no limits, no API key).
-     * Converts all pairs into their quote values based on USD.
-     */
     suspend fun fetchQuotesFromExchangeRate(): Map<String, ForexQuote> = withContext(Dispatchers.IO) {
         val result = mutableMapOf<String, ForexQuote>()
         try {
@@ -398,19 +176,10 @@ class ForexRemoteDataSource(
                 for (pair in ForexPairs.ALL) {
                     val parts = pair.symbol.split("/")
                     if (parts.size == 2) {
-                        val base = parts[0]
-                        val quote = parts[1]
-                        val price = getRate(base, quote)
+                        val price = getRate(parts[0], parts[1])
                         if (price > 0.0) {
                             val key = pair.symbol.uppercase()
-                            result[key] = ForexQuote(
-                                symbol = key,
-                                price = price,
-                                change = 0.0,
-                                changePercent = 0.0,
-                                dayHigh = price,
-                                dayLow = price
-                            )
+                            result[key] = ForexQuote(key, price, 0.0, 0.0, price, price)
                         }
                     }
                 }
@@ -420,6 +189,69 @@ class ForexRemoteDataSource(
             Log.w(TAG, "fetchQuotesFromExchangeRate failed: ${t.message}")
         }
         return@withContext result
+    }
+
+    // --- Finnhub (kept for compatibility) ---
+
+    suspend fun fetchQuotesFromFinnhub(symbols: List<String>): Map<String, ForexQuote> = withContext(Dispatchers.IO) {
+        val result = mutableMapOf<String, ForexQuote>()
+        for (sym in symbols) {
+            try {
+                val finnhubSymbol = "OANDA:" + sym.uppercase().replace("/", "_")
+                val url = "https://finnhub.io/api/v1/quote?symbol=$finnhubSymbol&token=${RigorConfig.FINNHUB_API_KEY}"
+                val request = Request.Builder().url(url).build()
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@use
+                    val body = response.body?.string() ?: return@use
+                    val json = gson.fromJson(body, JsonObject::class.java)
+                    val price = json.get("c")?.asDouble ?: 0.0
+                    if (price > 0.0) {
+                        val key = sym.uppercase()
+                        result[key] = ForexQuote(key, price, json.get("d")?.asDouble ?: 0.0, json.get("dp")?.asDouble ?: 0.0, json.get("h")?.asDouble ?: price, json.get("l")?.asDouble ?: price)
+                    }
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "Finnhub fetch failed for $sym: ${t.message}")
+            }
+        }
+        return@withContext result
+    }
+
+    // --- ForexLive News via RSS2JSON (Free, no API key) ---
+
+    suspend fun fetchForexNews(limit: Int = 15): List<ForexNewsItem> = withContext(Dispatchers.IO) {
+        val items = mutableListOf<ForexNewsItem>()
+        try {
+            val url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.forexlive.com%2Ffeed%2Fnews"
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext items
+                val body = response.body?.string() ?: return@withContext items
+                val json = JsonParser.parseString(body).asJsonObject
+                val itemsArray = json.getAsJsonArray("items") ?: return@withContext items
+
+                for (elem in itemsArray) {
+                    if (items.size >= limit) break
+                    val obj = elem.asJsonObject
+                    val headline = obj.get("title")?.asString ?: continue
+                    items.add(
+                        ForexNewsItem(
+                            id = System.currentTimeMillis(),
+                            headline = headline,
+                            summary = obj.get("description")?.asString ?: "",
+                            source = "ForexLive",
+                            url = obj.get("link")?.asString ?: "",
+                            datetime = System.currentTimeMillis(),
+                            imageUrl = null
+                        )
+                    )
+                }
+            }
+            Log.d(TAG, "Loaded ${items.size} forex news items")
+        } catch (t: Throwable) {
+            Log.e(TAG, "fetchForexNews failed: ${t.message}", t)
+        }
+        return@withContext items
     }
 
     companion object {
