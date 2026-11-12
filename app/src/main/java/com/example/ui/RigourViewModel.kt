@@ -358,6 +358,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     val forexErrorMessage: StateFlow<String?> = forexRepository.errorMessage
     val forexLastUpdated: StateFlow<Long> = forexRepository.lastUpdated
     val forexNews: StateFlow<List<ForexNewsItem>> = forexRepository.news
+    val forexPersianNews: StateFlow<List<ForexNewsItem>> = forexRepository.persianNews
     val isForexNewsLoading: StateFlow<Boolean> = forexRepository.isNewsLoading
 
     // Currently selected forex pair (for detail screen)

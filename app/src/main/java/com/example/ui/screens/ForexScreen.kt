@@ -49,7 +49,8 @@ fun ForexScreen(
     onBack: () -> Unit,
     onSelectPair: (ForexPair) -> Unit,
     onRefresh: () -> Unit,
-    news: List<ForexNewsItem> = emptyList()
+    news: List<ForexNewsItem> = emptyList(),
+    persianNews: List<ForexNewsItem> = emptyList()
 ) {
     val pages = ForexPairs.ALL_PAGES
     val pagerState = rememberPagerState(pageCount = { pages.size })
@@ -112,6 +113,8 @@ fun ForexScreen(
 
         // News Ticker (live from Finnhub)
         NewsTicker(news = news)
+        Spacer(modifier = Modifier.height(4.dp))
+        NewsTicker(news = persianNews)
         // Page title
         Text(
             text = pageTitles.getOrElse(pagerState.currentPage) { "" },

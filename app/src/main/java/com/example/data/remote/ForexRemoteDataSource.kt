@@ -258,3 +258,34 @@ class ForexRemoteDataSource(
         private const val TAG = "ForexRemote"
     }
 }
+
+    suspend fun fetchPersianNews(limit: Int = 15): List<ForexNewsItem> = withContext(Dispatchers.IO) {
+        val items = mutableListOf<ForexNewsItem>()
+        try {
+            val url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fdonya-e-eqtesad.com%2Ffeeds%2F"
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext items
+                val body = response.body?.string() ?: return@withContext items
+                val json = JsonParser.parseString(body).asJsonObject
+                val itemsArray = json.getAsJsonArray("items") ?: return@withContext items
+                for (elem in itemsArray) {
+                    if (items.size >= limit) break
+                    val obj = elem.asJsonObject
+                    val headline = obj.get("title")?.asString ?: continue
+                    items.add(ForexNewsItem(
+                        id = System.currentTimeMillis(),
+                        headline = headline,
+                        summary = obj.get("description")?.asString ?: "",
+                        source = "دنیای اقتصاد",
+                        url = obj.get("link")?.asString ?: "",
+                        datetime = System.currentTimeMillis(),
+                        language = "fa"
+                    ))
+                }
+            }
+        } catch (t: Throwable) {
+            Log.e(TAG, "fetchPersianNews failed: ${t.message}", t)
+        }
+        return@withContext items
+    }

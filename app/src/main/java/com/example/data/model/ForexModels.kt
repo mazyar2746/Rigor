@@ -152,5 +152,6 @@ data class ForexNewsItem(
     val source: String,
     val url: String,
     val datetime: Long,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val language: String = "en"
 )

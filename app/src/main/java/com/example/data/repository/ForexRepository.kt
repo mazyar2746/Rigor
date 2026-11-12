@@ -46,6 +46,8 @@ class ForexRepository(
     // --- Forex News ---
     private val _news = MutableStateFlow<List<ForexNewsItem>>(emptyList())
     val news = _news.asStateFlow()
+    private val _persianNews = MutableStateFlow<List<ForexNewsItem>>(emptyList())
+    val persianNews = _persianNews.asStateFlow()
 
     private val _isNewsLoading = MutableStateFlow(false)
     val isNewsLoading = _isNewsLoading.asStateFlow()
@@ -191,6 +193,7 @@ class ForexRepository(
         _isNewsLoading.value = true
         try {
             val items = remote.fetchForexNews(limit)
+            _persianNews.value = remote.fetchPersianNews(limit)
             if (items.isNotEmpty()) {
                 _news.value = items
                 Log.d(TAG, "Loaded ${items.size} news items")
