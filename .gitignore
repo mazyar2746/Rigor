@@ -7,3 +7,4 @@ update_log*.txt
 fundamental_data.json
 symbols_*.json
 
+signing.properties
