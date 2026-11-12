@@ -213,6 +213,7 @@ fun RigourApp(
                 is Screen.Forex -> viewModel.navigateTo(Screen.Hub)
                 is Screen.ForexDetail -> viewModel.navigateTo(Screen.Forex)
                 is Screen.Welcome -> viewModel.navigateTo(Screen.Markets)
+                is Screen.Forex -> viewModel.navigateTo(Screen.Hub)
                 is Screen.Signals -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Subscription -> viewModel.navigateTo(Screen.Markets)
                 is Screen.ContactUs -> viewModel.navigateTo(Screen.Settings)
@@ -312,7 +313,7 @@ fun RigourApp(
                     contentColor = Color.White,
                     modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                 ) {
-                    val marketsSelected = currentScreen is Screen.Markets || currentScreen is Screen.CoinDetail
+                    val marketsSelected = currentScreen is Screen.Markets || currentScreen is Screen.CoinDetail || currentScreen is Screen.Forex || currentScreen is Screen.ForexDetail || currentScreen is Screen.IranStockSearch || currentScreen is Screen.IranStockDetail || currentScreen is Screen.Forex || currentScreen is Screen.ForexDetail || currentScreen is Screen.IranStockSearch || currentScreen is Screen.IranStockDetail
                     val signalsSelected = currentScreen is Screen.Signals
                     val subSelected = currentScreen is Screen.Subscription
                     val welcomeSelected = currentScreen is Screen.Welcome

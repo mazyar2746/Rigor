@@ -320,46 +320,42 @@ class ForexRemoteDataSource(
     suspend fun fetchForexNews(limit: Int = 15): List<ForexNewsItem> = withContext(Dispatchers.IO) {
         val items = mutableListOf<ForexNewsItem>()
         try {
-            val url = "https://finnhub.io/api/v1/news?category=forex&token=${RigorConfig.FINNHUB_API_KEY}"
+            // Using RSS2JSON for free, no-API-key Forex news
+            val url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.forexlive.com%2Ffeed%2Fnews"
             val request = Request.Builder().url(url).build()
 
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    Log.w(TAG, "Finnhub news HTTP ${response.code}")
+                    Log.w(TAG, "News API HTTP ${response.code}")
                     return@withContext items
                 }
                 val body = response.body?.string() ?: return@withContext items
-                val arr = gson.fromJson(body, com.google.gson.JsonArray::class.java) ?: return@withContext items
+                val json = gson.fromJson(body, JsonObject::class.java)
+                
+                val itemsArray = json.getAsJsonArray("items") ?: return@withContext items
 
-                var count = 0
-                for (elem in arr) {
-                    if (count >= limit) break
+                for (elem in itemsArray) {
+                    if (items.size >= limit) break
                     val obj = elem.asJsonObject
-                    val headline = obj.get("headline")?.asString ?: continue
-                    val id = System.currentTimeMillis()
-                    val summary = obj.get("summary")?.asString ?: ""
-                    val source = obj.get("source")?.asString ?: ""
-                    val newsUrl = obj.get("url")?.asString ?: ""
-                    val datetime = obj.get("datetime")?.asLong ?: 0L
-                    val imageUrl = obj.get("image")?.asString
-
+                    val headline = obj.get("title")?.asString ?: continue
+                    val summary = obj.get("description")?.asString ?: ""
+                    val urlStr = obj.get("link")?.asString ?: ""
+                    
                     items.add(
                         ForexNewsItem(
-                            id = id,
+                            id = System.currentTimeMillis(),
                             headline = headline,
                             summary = summary,
-                            source = source,
-                            url = newsUrl,
-                            datetime = datetime,
-                            imageUrl = imageUrl
+                            source = "ForexLive",
+                            url = urlStr,
+                            datetime = System.currentTimeMillis(),
+                            imageUrl = null
                         )
                     )
-                    count++
                 }
             }
-            Log.d(TAG, "Loaded ${items.size} forex news items")
+            Log.d(TAG, "Loaded ${items.size} forex news items from RSS")
         } catch (t: Throwable) {
-            Log.w(TAG, "fetchForexNews failed: ${t.message}")
+            Log.e(TAG, "fetchForexNews failed: ${t.message}", t)
         }
         return@withContext items
     }
