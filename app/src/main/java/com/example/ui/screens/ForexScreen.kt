@@ -139,7 +139,8 @@ fun ForexScreen(
                 items(pagePairs) { pair ->
                     ForexPairCard(
                         pair = pair,
-                        quote = quotes[pair.symbol.uppercase()],
+                        
+                                lang = lang,quote = quotes[pair.symbol.uppercase()],
                         onClick = { onSelectPair(pair) }
                     )
                 }
@@ -174,6 +175,7 @@ fun ForexScreen(
 private fun ForexPairCard(
     pair: ForexPair,
     quote: ForexQuote?,
+    lang: Language,
     onClick: () -> Unit
 ) {
     val isPositive = (quote?.changePercent ?: 0.0) >= 0.0
