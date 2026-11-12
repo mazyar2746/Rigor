@@ -55,7 +55,7 @@ fun ForexScreen(
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
 
-    val pageTitles = listOf("جفت‌ارزهای اصلی", "کراس‌ها", "اگزوتیک")
+    val pageTitles = if (lang == Language.FA) listOf("جفت‌ارزهای اصلی", "کراس‌ها", "اگزوتیک") else listOf("Major Pairs", "Crosses", "Exotics")
 
     Column(
         modifier = Modifier
@@ -66,7 +66,7 @@ fun ForexScreen(
         TopAppBar(
             title = {
                 Text(
-                    text = "فارکس",
+                    text = if (lang == Language.FA) "فارکس" else "Forex",
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -201,7 +201,7 @@ private fun ForexPairCard(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = pair.category,
+                    text = if (lang == Language.FA) { if (pair.category == "Major") "اصلی" else if (pair.category == "Cross") "کراس" else "اگزوتیک" } else pair.category,
                     color = Color(0xFF94A3B8),
                     fontSize = 11.sp
                 )

@@ -313,7 +313,7 @@ fun RigourApp(
                     contentColor = Color.White,
                     modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                 ) {
-                    val marketsSelected = currentScreen is Screen.Markets || currentScreen is Screen.CoinDetail || currentScreen is Screen.Forex || currentScreen is Screen.ForexDetail || currentScreen is Screen.IranStockSearch || currentScreen is Screen.IranStockDetail || currentScreen is Screen.Forex || currentScreen is Screen.ForexDetail || currentScreen is Screen.IranStockSearch || currentScreen is Screen.IranStockDetail
+                    val marketsSelected = currentScreen is Screen.Markets || currentScreen is Screen.CoinDetail || currentScreen is Screen.Forex || currentScreen is Screen.ForexDetail || currentScreen is Screen.IranStockSearch || currentScreen is Screen.IranStockDetail
                     val signalsSelected = currentScreen is Screen.Signals
                     val subSelected = currentScreen is Screen.Subscription
                     val welcomeSelected = currentScreen is Screen.Welcome
