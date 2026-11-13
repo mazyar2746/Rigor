@@ -428,6 +428,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
             dexRepository.fetchQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress, sellTokenSymbol)
         }
     }
+    }
 
     fun clearDexState() {
         dexRepository.clearState()
