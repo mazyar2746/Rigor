@@ -213,6 +213,7 @@ fun RigourApp(
                 is Screen.Hub -> {}
                 is Screen.Forex -> viewModel.navigateTo(Screen.Hub)
                 is Screen.ForexDetail -> viewModel.navigateTo(Screen.Forex)
+                is Screen.Dex -> viewModel.navigateTo(Screen.Hub)
                 is Screen.Welcome -> viewModel.navigateTo(Screen.Markets)
                 is Screen.Forex -> viewModel.navigateTo(Screen.Hub)
                 is Screen.Signals -> viewModel.navigateTo(Screen.Markets)

@@ -184,6 +184,7 @@ fun ChartAndPoolsTab(chartData: List<Candle>, isChartLoading: Boolean, newPools:
                     CandlestickChartCanvas(
                         candles = chartData,
                         bbUpper = chartData.maxOfOrNull { it.close } ?: 0.0,
+                        bbMiddle = chartData.map { it.close }.average().takeIf { !it.isNaN() } ?: 0.0,
                         bbLower = chartData.minOfOrNull { it.close } ?: 0.0,
                         modifier = Modifier.fillMaxWidth().height(250.dp).padding(8.dp)
                     )
@@ -215,7 +216,7 @@ fun ChartAndPoolsTab(chartData: List<Candle>, isChartLoading: Boolean, newPools:
                             Text(pool.name, color = Color.White, fontWeight = FontWeight.Bold)
                             Text(pool.network.uppercase(), color = RigourCyan, fontSize = 12.sp)
                         }
-                        Text("8406{String.format("%.4f", pool.priceUsd)}", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("$" + "%.4f".format(pool.priceUsd), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }
