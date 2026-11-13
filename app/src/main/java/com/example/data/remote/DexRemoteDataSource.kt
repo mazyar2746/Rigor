@@ -101,33 +101,26 @@ class DexRemoteDataSource {
 
     suspend fun getTrendingTokens(): List<DexPool>? = withContext(Dispatchers.IO) {
         try {
-            val url = "https://www.okx.com/api/v5/market/tickers?instType=SPOT"
+            val url = "https://rigor-v339.h-nasiri3247.workers.dev/api/crypto/list"
             val request = Request.Builder().url(url).header("User-Agent", "Mozilla/5.0").build()
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
-                val json = gson.fromJson(body, JsonObject::class.java)
-                val dataArray = json.getAsJsonArray("data") ?: return@withContext null
+                val jsonArray = gson.fromJson(body, com.google.gson.JsonArray::class.java) ?: return@withContext null
                 
                 val pools = mutableListOf<DexPool>()
-                var count = 0
-                for (i in 0 until dataArray.size()) {
-                    if (count >= 15) break
-                    val obj = dataArray[i].asJsonObject
-                    val instId = obj.get("instId")?.asString ?: continue
-                    if (instId.endsWith("-USDT")) {
-                        val symbol = instId.split("-")[0]
-                        val price = obj.get("last")?.asString?.toDoubleOrNull() ?: 0.0
-                        pools.add(DexPool(
-                            address = "",
-                            name = symbol,
-                            network = "BSC/OKX",
-                            priceUsd = price,
-                            volume24h = 0.0,
-                            imageUrl = null
-                        ))
-                        count++
-                    }
+                for (i in 0 until minOf(jsonArray.size(), 15)) {
+                    val obj = jsonArray[i].asJsonObject
+                    val symbol = obj.get("symbol")?.asString?.uppercase() ?: continue
+                    val price = obj.get("current_price")?.asDouble ?: 0.0
+                    pools.add(DexPool(
+                        address = "",
+                        name = symbol,
+                        network = "BSC/OKX",
+                        priceUsd = price,
+                        volume24h = 0.0,
+                        imageUrl = null
+                    ))
                 }
                 return@withContext pools
             }
