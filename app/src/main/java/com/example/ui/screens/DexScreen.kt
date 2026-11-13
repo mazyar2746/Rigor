@@ -40,7 +40,7 @@ fun DexScreen(
     isPoolsLoading: Boolean,
     lang: Language,
     onBack: () -> Unit,
-    onGetQuote: (String, String, String) -> Unit,
+    onGetQuote: (String, String, String, String) -> Unit,
     onLoadChart: (String, String) -> Unit,
     onLoadPools: (String) -> Unit,
     onClearState: () -> Unit
@@ -101,7 +101,7 @@ fun SwapTab(
     isLoading: Boolean,
     errorMessage: String?,
     lang: Language,
-    onGetQuote: (String, String, String) -> Unit,
+    onGetQuote: (String, String, String, String) -> Unit,
     onClearState: () -> Unit
 ) {
     var sellAmount by remember { mutableStateOf("0.1") }
@@ -183,8 +183,9 @@ fun ChartAndPoolsTab(chartData: List<Candle>, isChartLoading: Boolean, newPools:
                 } else if (chartData.isNotEmpty()) {
                     CandlestickChartCanvas(
                         candles = chartData,
-                        modifier = Modifier.fillMaxWidth().height(250.dp).padding(8.dp),
-                        showVolume = false
+                        bbUpper = chartData.maxOfOrNull { it.close } ?: 0.0,
+                        bbLower = chartData.minOfOrNull { it.close } ?: 0.0,
+                        modifier = Modifier.fillMaxWidth().height(250.dp).padding(8.dp)
                     )
                 } else {
                     Box(modifier = Modifier.fillMaxWidth().height(250.dp), contentAlignment = Alignment.Center) {

@@ -46,6 +46,7 @@ sealed class Screen {
     object ContactUs : Screen()
     object Settings : Screen()
     object Forex : Screen()
+    object Dex : Screen()
     data class ForexDetail(val symbol: String) : Screen()
 }
 
