@@ -12,6 +12,10 @@ import com.example.data.model.TechnicalAnalysisResult
 import com.example.data.model.UserSubscription
 import com.example.data.repository.CryptoRepository
 import com.example.data.repository.ForexRepository
+import com.example.data.repository.DexRepository
+import com.example.data.model.DexQuote
+import com.example.data.model.Candle
+import com.example.data.model.DexPool
 import com.example.data.model.ForexPair
 import com.example.data.model.ForexPairs
 import com.example.data.model.ForexQuote
@@ -50,6 +54,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     private val database = RigourDatabase.getInstance(application)
     private val cryptoRepository = CryptoRepository(database.favoritesDao(), database.coinCacheDao(), context = application)
     private val forexRepository = ForexRepository()
+    private val dexRepository = DexRepository()
     private val subscriptionRepository = SubscriptionRepository(database.subscriptionDao())
 
     // App Navigation
@@ -407,5 +412,40 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
 
     fun clearForexError() {
         forexRepository.clearError()
+    }
+
+    // ============================================================
+    // DEX STATE & FUNCTIONS
+    // ============================================================
+
+    val dexQuote: StateFlow<DexQuote?> = dexRepository.currentQuote
+    val isDexLoading: StateFlow<Boolean> = dexRepository.isLoading
+    val dexErrorMessage: StateFlow<String?> = dexRepository.errorMessage
+
+    fun getDexQuote(sellTokenAddress: String, buyTokenAddress: String, sellAmount: String, walletAddress: String) {
+        viewModelScope.launch {
+            dexRepository.fetchQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress)
+        }
+    }
+
+    fun clearDexState() {
+        dexRepository.clearState()
+    }
+
+    val dexChartData: StateFlow<List<Candle>> = dexRepository.chartData
+    val isDexChartLoading: StateFlow<Boolean> = dexRepository.isChartLoading
+    val dexNewPools: StateFlow<List<DexPool>> = dexRepository.newPools
+    val isDexPoolsLoading: StateFlow<Boolean> = dexRepository.isPoolsLoading
+
+    fun getDexChart(network: String, poolAddress: String) {
+        viewModelScope.launch {
+            dexRepository.fetchChart(network, poolAddress)
+        }
+    }
+
+    fun getDexNewPools(network: String) {
+        viewModelScope.launch {
+            dexRepository.fetchNewPools(network)
+        }
     }
 }

@@ -86,6 +86,7 @@ import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.WelcomeScreen
 import com.example.ui.screens.SignalsScreen
 import com.example.ui.screens.ForexScreen
+import com.example.ui.screens.DexScreen
 import com.example.ui.screens.ForexDetailScreen
 import com.example.ui.screens.SubscriptionScreen
 import com.example.ui.theme.RigourBackground
@@ -463,6 +464,30 @@ fun RigourApp(
                                 onRefresh = { viewModel.refreshForexDetail() }
                             )
                         }
+                    }
+                    is Screen.Dex -> {
+                        val dexQuote by viewModel.dexQuote.collectAsStateWithLifecycle()
+                        val isDexLoading by viewModel.isDexLoading.collectAsStateWithLifecycle()
+                        val dexError by viewModel.dexErrorMessage.collectAsStateWithLifecycle()
+                        val dexChartData by viewModel.dexChartData.collectAsStateWithLifecycle()
+                        val isDexChartLoading by viewModel.isDexChartLoading.collectAsStateWithLifecycle()
+                        val dexNewPools by viewModel.dexNewPools.collectAsStateWithLifecycle()
+                        val isDexPoolsLoading by viewModel.isDexPoolsLoading.collectAsStateWithLifecycle()
+                        DexScreen(
+                            quote = dexQuote,
+                            isLoading = isDexLoading,
+                            errorMessage = dexError,
+                            chartData = dexChartData,
+                            isChartLoading = isDexChartLoading,
+                            newPools = dexNewPools,
+                            isPoolsLoading = isDexPoolsLoading,
+                            lang = currentLanguage,
+                            onBack = { viewModel.navigateTo(Screen.Hub) },
+                            onGetQuote = { sellToken, buyToken, amount -> viewModel.getDexQuote(sellToken, buyToken, amount, "0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab") },
+                            onLoadChart = { network, pool -> viewModel.getDexChart(network, pool) },
+                            onLoadPools = { network -> viewModel.getDexNewPools(network) },
+                            onClearState = { viewModel.clearDexState() }
+                        )
                     }
                     is Screen.Markets -> {
                         MarketDashboardScreen(
