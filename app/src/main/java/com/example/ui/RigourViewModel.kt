@@ -423,9 +423,9 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     val isDexLoading: StateFlow<Boolean> = dexRepository.isLoading
     val dexErrorMessage: StateFlow<String?> = dexRepository.errorMessage
 
-    fun getDexQuote(sellTokenAddress: String, buyTokenAddress: String, sellAmount: String, walletAddress: String) {
+    fun getDexQuote(sellTokenAddress: String, buyTokenAddress: String, sellAmount: String, walletAddress: String, sellTokenSymbol: String) {
         viewModelScope.launch {
-            dexRepository.fetchQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress)
+            dexRepository.fetchQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress, sellTokenSymbol)
         }
     }
 

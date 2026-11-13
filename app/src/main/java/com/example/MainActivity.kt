@@ -484,7 +484,7 @@ fun RigourApp(
                             isPoolsLoading = isDexPoolsLoading,
                             lang = currentLanguage,
                             onBack = { viewModel.navigateTo(Screen.Hub) },
-                            onGetQuote = { sellToken, buyToken, amount, wallet -> viewModel.getDexQuote(sellToken, buyToken, amount, wallet) },
+                            onGetQuote = { sellToken, buyToken, amount, wallet, symbol -> viewModel.getDexQuote(sellToken, buyToken, amount, wallet, symbol) },
                             onLoadChart = { network, pool -> viewModel.getDexChart(network, pool) },
                             onLoadPools = { network -> viewModel.getDexNewPools(network) },
                             onClearState = { viewModel.clearDexState() }

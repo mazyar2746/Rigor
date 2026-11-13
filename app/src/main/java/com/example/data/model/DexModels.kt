@@ -74,3 +74,12 @@ object DexTokens {
         DexToken("COMP", "Compound", "0x52CE071Bd9b1C4B00A0b92D298c512478CaD67e8", 0.0)
     )
 }
+
+object TokenDecimals {
+    private val map = mapOf(
+        "USDT" to 18, "BUSD" to 18, "USDC" to 18,
+        "BTC" to 8, "DOGE" to 8, 
+        "SHIB" to 18, "ETH" to 18, "BNB" to 18, "CAKE" to 18, "XRP" to 18, "ADA" to 18, "TRX" to 6
+    )
+    fun get(symbol: String): Int = map[symbol.uppercase()] ?: 18
+}

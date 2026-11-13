@@ -41,7 +41,9 @@ class DexRepository {
         sellTokenAddress: String,
         buyTokenAddress: String,
         sellAmount: String,
-        walletAddress: String
+        walletAddress: String,
+        sellTokenSymbol: String,
+        sellTokenSymbol: String
     ) = withContext(Dispatchers.IO) {
         _isLoading.value = true
         _errorMessage.value = null
@@ -52,7 +54,9 @@ class DexRepository {
                 sellTokenAddress = sellTokenAddress,
                 buyTokenAddress = buyTokenAddress,
                 sellAmount = sellAmount,
-                walletAddress = walletAddress
+                walletAddress = walletAddress,
+                sellTokenSymbol = sellTokenSymbol,
+                sellTokenSymbol = sellTokenSymbol
             )
 
             if (quote != null) {
@@ -87,7 +91,7 @@ class DexRepository {
     suspend fun fetchNewPools(network: String) = withContext(Dispatchers.IO) {
         _isPoolsLoading.value = true
         try {
-            val pools = remote.getNewPools(network)
+            val pools = remote.getTrendingTokens()
             if (pools != null) {
                 _newPools.value = pools
             }

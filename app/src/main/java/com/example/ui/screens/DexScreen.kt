@@ -41,7 +41,7 @@ fun DexScreen(
     isPoolsLoading: Boolean,
     lang: Language,
     onBack: () -> Unit,
-    onGetQuote: (String, String, String, String) -> Unit,
+    onGetQuote: (String, String, String, String, String) -> Unit,
     onLoadChart: (String, String) -> Unit,
     onLoadPools: (String) -> Unit,
     onClearState: () -> Unit
@@ -99,7 +99,7 @@ fun ProfessionalSwapTab(
     isLoading: Boolean,
     errorMessage: String?,
     lang: Language,
-    onGetQuote: (String, String, String, String) -> Unit,
+    onGetQuote: (String, String, String, String, String) -> Unit,
     onClearState: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -115,7 +115,7 @@ fun ProfessionalSwapTab(
     LaunchedEffect(sellAmount, sellToken, buyToken) {
         val amount = sellAmount.toDoubleOrNull() ?: 0.0
         if (amount > 0) {
-            onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet)
+            onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet, sellToken.symbol)
         } else {
             onClearState()
         }
@@ -184,7 +184,7 @@ fun ProfessionalSwapTab(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = if (isLoading) "..." else {
-                            val amt = quote?.buyAmount?.toDoubleOrNull()?.div(1e18) ?: 0.0
+                            val amt = quote?.buyAmount?.toDoubleOrNull()?.div(java.math.BigDecimal.TEN.pow(com.example.data.model.TokenDecimals.get(buyToken.symbol)).toDouble()) ?: 0.0
                             if (amt > 0) String.format("%.4f", amt) else "0.0000"
                         },
                         color = Color.White, fontSize = 18.sp, modifier = Modifier.weight(1f)

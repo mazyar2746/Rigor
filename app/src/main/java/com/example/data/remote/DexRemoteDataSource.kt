@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
+import com.example.data.model.TokenDecimals
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -21,18 +22,19 @@ class DexRemoteDataSource {
     private val gson = Gson()
     private val baseUrl = "https://rigor-v339.h-nasiri3247.workers.dev/api/dex"
 
-    // --- 1. Get Swap Quote (0x API) ---
     suspend fun getQuote(
         sellTokenAddress: String,
         buyTokenAddress: String,
         sellAmount: String,
-        walletAddress: String
+        walletAddress: String,
+        sellTokenSymbol: String
     ): DexQuote? = withContext(Dispatchers.IO) {
         try {
+            val decimals = TokenDecimals.get(sellTokenSymbol)
             val url = "$baseUrl/quote?chainId=56" +
                     "&sellToken=$sellTokenAddress" +
                     "&buyToken=$buyTokenAddress" +
-                    "&sellAmount=" + try { java.math.BigDecimal(sellAmount).multiply(java.math.BigDecimal("1000000000000000000")).toBigInteger().toString() } catch (e: Exception) { "0" } +
+                    "&sellAmount=" + try { java.math.BigDecimal(sellAmount).multiply(java.math.BigDecimal.TEN.pow(decimals)).toBigInteger().toString() } catch (e: Exception) { "0" } +
                     "&taker=$walletAddress" +
                     "&swapFeeRecipient=0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab" +
                     "&swapFeeBps=25"
@@ -63,7 +65,6 @@ class DexRemoteDataSource {
         }
     }
 
-    // --- 2. Get Chart Data (OKX API) ---
     suspend fun getChart(network: String, pool: String, interval: String = "1h"): List<Candle>? = withContext(Dispatchers.IO) {
         try {
             val symbol = "BNB-USDT"
@@ -98,33 +99,40 @@ class DexRemoteDataSource {
         }
     }
 
-    // --- 3. Get New Pools / Tokens (DexScreener) ---
-    suspend fun getNewPools(network: String = "bsc"): List<DexPool>? = withContext(Dispatchers.IO) {
+    suspend fun getTrendingTokens(): List<DexPool>? = withContext(Dispatchers.IO) {
         try {
-            val url = "$baseUrl/new-pools?network=$network"
-            val request = Request.Builder().url(url).build()
-            
+            val url = "https://www.okx.com/api/v5/market/tickers?instType=SPOT"
+            val request = Request.Builder().url(url).header("User-Agent", "Mozilla/5.0").build()
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
-                val jsonArray = gson.fromJson(body, com.google.gson.JsonArray::class.java) ?: return@withContext null
+                val json = gson.fromJson(body, JsonObject::class.java)
+                val dataArray = json.getAsJsonArray("data") ?: return@withContext null
                 
                 val pools = mutableListOf<DexPool>()
-                for (i in 0 until minOf(jsonArray.size(), 15)) {
-                    val obj = jsonArray[i].asJsonObject
-                    pools.add(DexPool(
-                        address = obj.get("tokenAddress")?.asString ?: "",
-                        name = obj.get("description")?.asString ?: "Unknown Token",
-                        network = obj.get("chainId")?.asString ?: "bsc",
-                        priceUsd = obj.get("priceUsd")?.asString?.toDoubleOrNull() ?: 0.0,
-                        volume24h = obj.get("volume24h")?.asString?.toDoubleOrNull() ?: 0.0,
-                        imageUrl = obj.get("icon")?.asString
-                    ))
+                var count = 0
+                for (i in 0 until dataArray.size()) {
+                    if (count >= 15) break
+                    val obj = dataArray[i].asJsonObject
+                    val instId = obj.get("instId")?.asString ?: continue
+                    if (instId.endsWith("-USDT")) {
+                        val symbol = instId.split("-")[0]
+                        val price = obj.get("last")?.asString?.toDoubleOrNull() ?: 0.0
+                        pools.add(DexPool(
+                            address = "",
+                            name = symbol,
+                            network = "BSC/OKX",
+                            priceUsd = price,
+                            volume24h = 0.0,
+                            imageUrl = null
+                        ))
+                        count++
+                    }
                 }
                 return@withContext pools
             }
         } catch (t: Throwable) {
-            Log.e("DexRemote", "getNewPools failed: ${t.message}")
+            Log.e("DexRemote", "getTrendingTokens failed: ${t.message}")
             return@withContext null
         }
     }
