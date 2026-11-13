@@ -102,6 +102,7 @@ fun ProfessionalSwapTab(
     onGetQuote: (String, String, String, String) -> Unit,
     onClearState: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var sellAmount by remember { mutableStateOf("0.1") }
     val defaultTokens = DexTokens.BSC_TOKENS
     var sellToken by remember { mutableStateOf(defaultTokens.getOrNull(0) ?: defaultTokens.first()) } // BNB
@@ -213,7 +214,7 @@ fun ProfessionalSwapTab(
         Button(
             onClick = { 
                 android.widget.Toast.makeText(
-                    androidx.compose.ui.platform.LocalContext.current,
+                    context,
                     "اتصال کیف پول در نسخه بعدی فعال می‌شود",
                     android.widget.Toast.LENGTH_SHORT
                 ).show() 
