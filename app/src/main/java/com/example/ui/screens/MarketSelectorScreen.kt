@@ -145,7 +145,7 @@ fun MarketSelectorScreen(
                     gradient = listOf(Color(0xFF06B6D4).copy(alpha = 0.8f), Color(0xFF0891B2).copy(alpha = 0.6f)),
                     onClick = onNavigateToDex,
                     modifier = Modifier.weight(1f),
-                    disabled = true
+                    disabled = false
                 )
             }
         }
