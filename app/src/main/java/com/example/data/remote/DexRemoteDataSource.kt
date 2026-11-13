@@ -12,10 +12,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
-/**
- * DexRemoteDataSource - Connects to our Cloudflare Worker.
- * Handles 0x swaps, DexPaprika charts, and DexScreener new pools.
- */
 class DexRemoteDataSource {
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -46,7 +42,6 @@ class DexRemoteDataSource {
                 if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
                 val json = gson.fromJson(body, JsonObject::class.java)
-
                 if (json.has("error")) return@withContext null
 
                 return@withContext DexQuote(
@@ -68,46 +63,34 @@ class DexRemoteDataSource {
         }
     }
 
-    // --- 2. Get Chart Data (DexPaprika) ---
+    // --- 2. Get Chart Data (OKX API) ---
     suspend fun getChart(network: String, pool: String, interval: String = "1h"): List<Candle>? = withContext(Dispatchers.IO) {
         try {
-            val url = "$baseUrl/chart?network=$network&pool=$pool&interval=$interval&limit=100"
-            val request = Request.Builder().url(url).build()
+            val symbol = "BNB-USDT"
+            val bar = if (interval == "1h") "1H" else interval
+            val url = "$baseUrl/chart?symbol=$symbol&interval=$bar&limit=100"
             
+            val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
-                
-                // Check if body is empty
-                if (body.isBlank() || !body.startsWith("{")) return@withContext null
-                
                 val json = gson.fromJson(body, JsonObject::class.java)
+                
                 val dataArray = json.getAsJsonArray("data") ?: return@withContext null
                 val candles = mutableListOf<Candle>()
                 
                 for (i in 0 until dataArray.size()) {
-                    val obj = dataArray[i].asJsonObject
+                    val arr = dataArray[i].asJsonArray
+                    val timestamp = arr[0].asLong
+                    val open = arr[1].asDouble
+                    val high = arr[2].asDouble
+                    val low = arr[3].asDouble
+                    val close = arr[4].asDouble
+                    val volume = arr[5].asDouble
                     
-                    // Safely parse values from DexPaprika response
-                    val open = obj.get("open")?.asDouble ?: 0.0
-                    val high = obj.get("high")?.asDouble ?: 0.0
-                    val low = obj.get("low")?.asDouble ?: 0.0
-                    val close = obj.get("close")?.asDouble ?: 0.0
-                    val volume = obj.get("volume")?.asDouble ?: 0.0
-                    
-                    // Generate a sequential timestamp to ensure the chart draws properly
-                    val fakeTimestamp = System.currentTimeMillis() - ((dataArray.size() - i) * 3600000L)
-
-                    candles.add(Candle(
-                        timestamp = fakeTimestamp,
-                        open = open,
-                        high = high,
-                        low = low,
-                        close = close,
-                        volume = volume
-                    ))
+                    candles.add(Candle(timestamp, open, high, low, close, volume))
                 }
-                return@withContext candles
+                return@withContext candles.reversed()
             }
         } catch (t: Throwable) {
             Log.e("DexRemote", "getChart failed: ${t.message}")
