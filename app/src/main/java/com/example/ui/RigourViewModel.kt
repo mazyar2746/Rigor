@@ -423,21 +423,20 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     val isDexLoading: StateFlow<Boolean> = dexRepository.isLoading
     val dexErrorMessage: StateFlow<String?> = dexRepository.errorMessage
 
+    val dexChartData: StateFlow<List<Candle>> = dexRepository.chartData
+    val isDexChartLoading: StateFlow<Boolean> = dexRepository.isChartLoading
+    val dexNewPools: StateFlow<List<DexPool>> = dexRepository.newPools
+    val isDexPoolsLoading: StateFlow<Boolean> = dexRepository.isPoolsLoading
+
     fun getDexQuote(sellTokenAddress: String, buyTokenAddress: String, sellAmount: String, walletAddress: String, sellTokenSymbol: String) {
         viewModelScope.launch {
             dexRepository.fetchQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress, sellTokenSymbol)
         }
     }
-    }
 
     fun clearDexState() {
         dexRepository.clearState()
     }
-
-    val dexChartData: StateFlow<List<Candle>> = dexRepository.chartData
-    val isDexChartLoading: StateFlow<Boolean> = dexRepository.isChartLoading
-    val dexNewPools: StateFlow<List<DexPool>> = dexRepository.newPools
-    val isDexPoolsLoading: StateFlow<Boolean> = dexRepository.isPoolsLoading
 
     fun getDexChart(network: String, poolAddress: String) {
         viewModelScope.launch {
