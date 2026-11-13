@@ -127,10 +127,17 @@ fun ProfessionalSwapTab(
                 Text("شما می‌فروشید", color = Color.Gray, fontSize = 12.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    TextField(
+                    OutlinedTextField(
                         value = sellAmount,
                         onValueChange = { sellAmount = it },
-                        colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
                         modifier = Modifier.weight(1f)
                     )
                     // TOKEN SELECTOR BUTTON
@@ -228,8 +235,7 @@ fun ProfessionalSwapTab(
 fun TokenSelectorSheet(onDismiss: () -> Unit, onSelect: (DexToken) -> Unit) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = RigourSurface,
-        dragHandle = { BottomSheetDefaults.DragHandle() }
+        containerColor = RigourSurface
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("انتخاب توکن", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
