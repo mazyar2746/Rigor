@@ -417,7 +417,7 @@ fun RigourApp(
                             onNavigateToCrypto = { viewModel.navigateTo(Screen.Markets) },
                             onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) },
                             onNavigateToForex = { viewModel.navigateToForex() },
-                            onNavigateToDex = { /* به‌زودی */ }
+                            onNavigateToDex = { viewModel.navigateTo(Screen.Dex) }
                         )
                     }
 
