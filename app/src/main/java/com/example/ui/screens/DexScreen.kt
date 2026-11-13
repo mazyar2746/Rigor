@@ -160,7 +160,7 @@ fun ProfessionalSwapTab(
         // --- SWAP ICON ---
         Box(
             modifier = Modifier
-                .padding(vertical = (-12).dp)
+                .offset(y = (-12).dp)
                 .align(Alignment.CenterHorizontally)
                 .size(40.dp)
                 .clip(RoundedCornerShape(50))
