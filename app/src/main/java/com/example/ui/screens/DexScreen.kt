@@ -184,7 +184,7 @@ fun ProfessionalSwapTab(
                     Text(
                         text = if (isLoading) "..." else {
                             val amt = quote?.buyAmount?.toDoubleOrNull()?.div(1e18) ?: 0.0
-                            String.format("%.4f", amt)
+                            if (amt > 0) String.format("%.4f", amt) else "0.0000"
                         },
                         color = Color.White, fontSize = 18.sp, modifier = Modifier.weight(1f)
                     )
@@ -211,7 +211,13 @@ fun ProfessionalSwapTab(
             Spacer(modifier = Modifier.height(16.dp))
         }
         Button(
-            onClick = { /* Connect Wallet */ },
+            onClick = { 
+                android.widget.Toast.makeText(
+                    androidx.compose.ui.platform.LocalContext.current,
+                    "اتصال کیف پول در نسخه بعدی فعال می‌شود",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show() 
+            },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = RigourCyan),
             shape = RoundedCornerShape(16.dp),
