@@ -36,7 +36,7 @@ class DexRemoteDataSource {
             val url = "$baseUrl/quote?chainId=56" +
                     "&sellToken=$sellTokenAddress" +
                     "&buyToken=$buyTokenAddress" +
-                    "&sellAmount=" + java.math.BigDecimal(sellAmount).multiply(java.math.BigDecimal("1000000000000000000")).toBigInteger().toString() +
+                    "&sellAmount=" + try { java.math.BigDecimal(sellAmount).multiply(java.math.BigDecimal("1000000000000000000")).toBigInteger().toString() } catch (e: Exception) { "0" } +
                     "&taker=$walletAddress" +
                     "&swapFeeRecipient=0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab" +
                     "&swapFeeBps=25"

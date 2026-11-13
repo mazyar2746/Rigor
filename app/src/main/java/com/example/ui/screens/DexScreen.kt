@@ -103,8 +103,9 @@ fun ProfessionalSwapTab(
     onClearState: () -> Unit
 ) {
     var sellAmount by remember { mutableStateOf("0.1") }
-    var sellToken by remember { mutableStateOf(DexTokens.BSC_TOKENS[0]) } // BNB
-    var buyToken by remember { mutableStateOf(DexTokens.BSC_TOKENS[1]) } // USDT
+    val defaultTokens = DexTokens.BSC_TOKENS
+    var sellToken by remember { mutableStateOf(defaultTokens.getOrNull(0) ?: defaultTokens.first()) } // BNB
+    var buyToken by remember { mutableStateOf(defaultTokens.getOrNull(1) ?: defaultTokens.last()) } // USDT
     val dummyWallet = "0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab"
     
     var showSellSelector by remember { mutableStateOf(false) }
