@@ -99,6 +99,41 @@ class DexRemoteDataSource {
         }
     }
 
+    // Chart for a specific token (sync with swap)
+    suspend fun getChartForSymbol(symbol: String, interval: String = "1H"): List<Candle>? = withContext(Dispatchers.IO) {
+        try {
+            val okxSymbol = "${symbol.uppercase()}-USDT"
+            val url = "$baseUrl/chart?symbol=$okxSymbol&interval=$interval&limit=100"
+            
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext null
+                val body = response.body?.string() ?: return@withContext null
+                val json = gson.fromJson(body, JsonObject::class.java)
+                
+                val dataArray = json.getAsJsonArray("data") ?: return@withContext null
+                val candles = mutableListOf<Candle>()
+                
+                for (i in 0 until dataArray.size()) {
+                    val arr = dataArray[i].asJsonArray
+                    val timestamp = arr[0].asLong
+                    candles.add(Candle(
+                        timestamp,
+                        arr[1].asDouble,
+                        arr[2].asDouble,
+                        arr[3].asDouble,
+                        arr[4].asDouble,
+                        arr[5].asDouble
+                    ))
+                }
+                return@withContext candles.reversed()
+            }
+        } catch (t: Throwable) {
+            Log.e("DexRemote", "getChartForSymbol failed: ${t.message}")
+            return@withContext null
+        }
+    }
+
     suspend fun getTrendingTokens(): List<DexPool>? = withContext(Dispatchers.IO) {
         try {
             val url = "https://rigor-v339.h-nasiri3247.workers.dev/api/crypto/list"
@@ -109,16 +144,21 @@ class DexRemoteDataSource {
                 val jsonArray = gson.fromJson(body, com.google.gson.JsonArray::class.java) ?: return@withContext null
                 
                 val pools = mutableListOf<DexPool>()
-                for (i in 0 until minOf(jsonArray.size(), 15)) {
+                for (i in 0 until minOf(jsonArray.size(), 20)) {
                     val obj = jsonArray[i].asJsonObject
                     val symbol = obj.get("symbol")?.asString?.uppercase() ?: continue
+                    val name = obj.get("name")?.asString ?: symbol
                     val price = obj.get("current_price")?.asDouble ?: 0.0
+                    val change24h = obj.get("price_change_percentage_24h")?.asDouble ?: 0.0
+                    val marketCap = obj.get("market_cap")?.asDouble ?: 0.0
                     pools.add(DexPool(
                         address = "",
-                        name = symbol,
+                        symbol = symbol,
+                        name = name,
                         network = "BSC/OKX",
                         priceUsd = price,
-                        volume24h = 0.0,
+                        volume24h = marketCap,
+                        priceChange24h = change24h,
                         imageUrl = null
                     ))
                 }

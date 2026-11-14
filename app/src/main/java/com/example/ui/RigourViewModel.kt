@@ -449,4 +449,10 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
             dexRepository.fetchNewPools(network)
         }
     }
+
+    fun getDexChartForSymbol(symbol: String) {
+        viewModelScope.launch {
+            dexRepository.fetchChartForSymbol(symbol)
+        }
+    }
 }

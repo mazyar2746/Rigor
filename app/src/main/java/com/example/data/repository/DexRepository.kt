@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
+import com.example.data.model.DexTokenInfo
 import com.example.data.remote.DexRemoteDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,20 +45,10 @@ class DexRepository {
         _isLoading.value = true
         _errorMessage.value = null
         _currentQuote.value = null
-
         try {
-            val quote = remote.getQuote(
-                sellTokenAddress = sellTokenAddress,
-                buyTokenAddress = buyTokenAddress,
-                sellAmount = sellAmount,
-                walletAddress = walletAddress,
-                sellTokenSymbol = sellTokenSymbol
-            )
-            if (quote != null) {
-                _currentQuote.value = quote
-            } else {
-                _errorMessage.value = "خطا در دریافت قیمت. لطفا دوباره تلاش کنید."
-            }
+            val quote = remote.getQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress, sellTokenSymbol)
+            if (quote != null) _currentQuote.value = quote
+            else _errorMessage.value = "خطا در دریافت قیمت."
         } catch (t: Throwable) {
             _errorMessage.value = "خطا: ${t.message}"
         } finally {
@@ -69,11 +60,17 @@ class DexRepository {
         _isChartLoading.value = true
         try {
             val candles = remote.getChart(network, poolAddress)
-            if (candles != null) {
-                _chartData.value = candles
-            }
-        } catch (t: Throwable) {
-            Log.e("DexRepo", "fetchChart failed", t)
+            if (candles != null) _chartData.value = candles
+        } finally {
+            _isChartLoading.value = false
+        }
+    }
+
+    suspend fun fetchChartForSymbol(symbol: String) = withContext(Dispatchers.IO) {
+        _isChartLoading.value = true
+        try {
+            val candles = remote.getChartForSymbol(symbol)
+            if (candles != null) _chartData.value = candles
         } finally {
             _isChartLoading.value = false
         }
@@ -83,14 +80,14 @@ class DexRepository {
         _isPoolsLoading.value = true
         try {
             val pools = remote.getTrendingTokens()
-            if (pools != null) {
-                _newPools.value = pools
-            }
-        } catch (t: Throwable) {
-            Log.e("DexRepo", "fetchNewPools failed", t)
+            if (pools != null) _newPools.value = pools
         } finally {
             _isPoolsLoading.value = false
         }
+    }
+
+    suspend fun lookupTokenByAddress(address: String): DexTokenInfo? = withContext(Dispatchers.IO) {
+        return@withContext remote.lookupTokenByAddress(address)
     }
 
     fun clearState() {

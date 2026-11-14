@@ -23,10 +23,12 @@ data class DexQuote(
 
 data class DexPool(
     val address: String,
+    val symbol: String,
     val name: String,
     val network: String,
     val priceUsd: Double,
     val volume24h: Double,
+    val priceChange24h: Double,
     val imageUrl: String? = null
 )
 
