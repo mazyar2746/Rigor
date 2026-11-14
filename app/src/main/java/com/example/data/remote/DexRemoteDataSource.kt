@@ -186,6 +186,7 @@ class DexRemoteDataSource {
                     name = json.get("name")?.asString ?: "",
                     address = json.get("address")?.asString ?: "",
                     network = json.get("network")?.asString ?: "BSC",
+                    chainId = json.get("chainId")?.asInt ?: 56,
                     decimals = json.get("decimals")?.asInt ?: 18
                 )
             }
