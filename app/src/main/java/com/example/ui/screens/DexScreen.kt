@@ -2,8 +2,6 @@
 
 package com.example.ui.screens
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -125,6 +123,8 @@ fun ProfessionalSwapTab(
     var buyToken by remember { mutableStateOf(DexTokens.BSC_TOKENS[1]) }
     val dummyWallet = "0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab"
     var showSellSelector by remember { mutableStateOf(false) }
+    var showCrossChainWeb by remember { mutableStateOf(false) }
+    var crossChainUrl by remember { mutableStateOf("") }
     var showBuySelector by remember { mutableStateOf(false) }
 
     val sameNetwork = sellToken.chainId == buyToken.chainId
@@ -226,19 +226,12 @@ fun ProfessionalSwapTab(
             )
             Button(
                 onClick = {
-                    val fromChain = chainKey(sellToken.chainId)
-                    val toChain = chainKey(buyToken.chainId)
-                    val amount = (sellAmount.toDoubleOrNull() ?: 0.1) * Math.pow(10.0, TokenDecimals.get(sellToken.symbol).toDouble())
                     val rangoUrl = "https://app.rango.exchange/swap/" +
                             "${sellToken.symbol}.${sellToken.address}-${sellToken.chainId}/" +
                             "${buyToken.symbol}.${buyToken.address}-${buyToken.chainId}/" +
                             "?${sellAmount}"
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(rangoUrl))
-                        context.startActivity(intent)
-                    } catch (e: Exception) {
-                        android.widget.Toast.makeText(context, "خطا در باز کردن مرورگر: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
-                    }
+                    crossChainUrl = rangoUrl
+                    showCrossChainWeb = true
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B5CF6)),
@@ -251,6 +244,18 @@ fun ProfessionalSwapTab(
 
     if (showSellSelector) TokenSelectorSheet(onDismiss = { showSellSelector = false }, onSelect = { sellToken = it; showSellSelector = false }, onLookupToken = onLookupToken)
     if (showBuySelector) TokenSelectorSheet(onDismiss = { showBuySelector = false }, onSelect = { buyToken = it; showBuySelector = false }, onLookupToken = onLookupToken)
+    
+    if (showCrossChainWeb) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { showCrossChainWeb = false },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            CrossChainWebView(
+                url = crossChainUrl,
+                onBack = { showCrossChainWeb = false }
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
