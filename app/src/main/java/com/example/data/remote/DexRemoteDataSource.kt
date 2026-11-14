@@ -173,7 +173,7 @@ class DexRemoteDataSource {
 
     suspend fun lookupTokenByAddress(address: String): DexTokenInfo? = withContext(Dispatchers.IO) {
         try {
-            val url = "https://rigor-v339.h-nasiri3247.workers.dev/api/dex/lookup-token?address=" + address
+            val url = "https://rigor-v339.h-nasiri3247.workers.dev/api/dex/lookup-token-multi?address=" + address
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext null
