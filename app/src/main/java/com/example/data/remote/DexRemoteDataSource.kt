@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
+import com.example.data.model.DexTokenInfo
 import com.example.data.model.TokenDecimals
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -166,6 +167,29 @@ class DexRemoteDataSource {
             }
         } catch (t: Throwable) {
             Log.e("DexRemote", "getTrendingTokens failed: ${t.message}")
+            return@withContext null
+        }
+    }
+
+    suspend fun lookupTokenByAddress(address: String): DexTokenInfo? = withContext(Dispatchers.IO) {
+        try {
+            val url = "https://rigor-v339.h-nasiri3247.workers.dev/api/dex/lookup-token?address=" + address
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext null
+                val body = response.body?.string() ?: return@withContext null
+                val json = gson.fromJson(body, JsonObject::class.java)
+                if (json.get("found")?.asBoolean != true) return@withContext null
+                return@withContext DexTokenInfo(
+                    symbol = json.get("symbol")?.asString ?: "",
+                    name = json.get("name")?.asString ?: "",
+                    address = json.get("address")?.asString ?: "",
+                    network = json.get("network")?.asString ?: "BSC",
+                    decimals = json.get("decimals")?.asInt ?: 18
+                )
+            }
+        } catch (t: Throwable) {
+            Log.e("DexRemote", "lookupTokenByAddress failed: ${t.message}")
             return@withContext null
         }
     }

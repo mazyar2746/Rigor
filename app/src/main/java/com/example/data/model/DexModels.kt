@@ -8,6 +8,14 @@ data class DexToken(
     val imageUrl: String? = null
 )
 
+data class DexTokenInfo(
+    val symbol: String,
+    val name: String,
+    val address: String,
+    val network: String,
+    val decimals: Int
+)
+
 data class DexQuote(
     val buyAmount: String,
     val sellAmount: String,

@@ -243,27 +243,27 @@ fun TokenSelectorSheet(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
+            val localFoundToken = foundToken
             if (isSearchingAddress) {
                 Box(modifier = Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = RigourCyan, modifier = Modifier.size(30.dp))
                 }
             } else if (searchQuery.startsWith("0x") && searchQuery.length >= 40) {
-                if (foundToken != null) {
-                    // نمایش توکن پیدا شده بر اساس آدرس
+                if (localFoundToken != null) {
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable { 
-                            onSelect(DexToken(foundToken!!.symbol, foundToken!!.name, foundToken!!.address, 0.0))
+                            onSelect(DexToken(localFoundToken.symbol, localFoundToken.name, localFoundToken.address, 0.0))
                         }.padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).clip(RoundedCornerShape(50)).background(RigourCyan.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
-                            Text(foundToken!!.symbol.take(1), color = RigourCyan, fontWeight = FontWeight.Bold)
+                            Text(localFoundToken.symbol.take(1), color = RigourCyan, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text(foundToken!!.symbol, color = RigourCyan, fontWeight = FontWeight.Bold)
-                            Text(foundToken!!.name, color = Color.White, fontSize = 12.sp)
-                            Text("شبکه: " + foundToken!!.network, color = Color.Gray, fontSize = 10.sp)
+                            Text(localFoundToken.symbol, color = RigourCyan, fontWeight = FontWeight.Bold)
+                            Text(localFoundToken.name, color = Color.White, fontSize = 12.sp)
+                            Text("شبکه: " + localFoundToken.network, color = Color.Gray, fontSize = 10.sp)
                         }
                     }
                 } else {

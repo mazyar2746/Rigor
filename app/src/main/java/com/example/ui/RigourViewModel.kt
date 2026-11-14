@@ -455,4 +455,11 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
             dexRepository.fetchChartForSymbol(symbol)
         }
     }
+
+    fun lookupDexToken(address: String, onResult: (com.example.data.model.DexTokenInfo?) -> Unit) {
+        viewModelScope.launch {
+            val token = dexRepository.lookupTokenByAddress(address)
+            onResult(token)
+        }
+    }
 }
