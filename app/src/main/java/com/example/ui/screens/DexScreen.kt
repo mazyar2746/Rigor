@@ -2,6 +2,8 @@
 
 package com.example.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +46,14 @@ private fun networkName(chainId: Int): String = when (chainId) {
     else -> "BSC"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private fun chainKey(chainId: Int): String = when (chainId) {
+    56 -> "bsc"
+    1 -> "eth"
+    137 -> "pol"
+    42161 -> "arb"
+    else -> "bsc"
+}
+
 @Composable
 fun DexScreen(
     quote: DexQuote?,
@@ -99,7 +109,6 @@ fun DexScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfessionalSwapTab(
     quote: DexQuote?,
@@ -110,7 +119,7 @@ fun ProfessionalSwapTab(
     onClearState: () -> Unit,
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     var sellAmount by remember { mutableStateOf("0.1") }
     var sellToken by remember { mutableStateOf(DexTokens.BSC_TOKENS[0]) }
     var buyToken by remember { mutableStateOf(DexTokens.BSC_TOKENS[1]) }
@@ -194,27 +203,49 @@ fun ProfessionalSwapTab(
             }
         }
 
-        if (!sameNetwork) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                "هر دو توکن باید روی یک شبکه باشند. لطفا توکن دوم را از شبکه‌ی " + networkName(sellToken.chainId) + " انتخاب کنید.",
-                color = Color(0xFFF59E0B), fontSize = 12.sp,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
         Spacer(modifier = Modifier.height(24.dp))
         if (errorMessage != null) {
             Text(text = errorMessage, color = Color.Red, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Spacer(modifier = Modifier.height(16.dp))
         }
-        Button(
-            onClick = { android.widget.Toast.makeText(context, "اتصال کیف پول در نسخه بعدی فعال می‌شود", android.widget.Toast.LENGTH_SHORT).show() },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = RigourCyan),
-            shape = RoundedCornerShape(16.dp),
-            enabled = quote != null && !isLoading && sameNetwork
-        ) { Text(text = if (isLoading) "در حال دریافت قیمت..." else "اتصال کیف پول و سواپ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+
+        if (sameNetwork) {
+            Button(
+                onClick = { android.widget.Toast.makeText(context, "اتصال کیف پول در نسخه بعدی فعال می‌شود", android.widget.Toast.LENGTH_SHORT).show() },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = RigourCyan),
+                shape = RoundedCornerShape(16.dp),
+                enabled = quote != null && !isLoading
+            ) { Text(text = if (isLoading) "در حال دریافت قیمت..." else "اتصال کیف پول و سواپ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+        } else {
+            Text(
+                "شبکه‌های این دو توکن متفاوت هستند.",
+                color = Color(0xFFF59E0B), fontSize = 13.sp,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Button(
+                onClick = {
+                    val fromChain = chainKey(sellToken.chainId)
+                    val toChain = chainKey(buyToken.chainId)
+                    val amount = (sellAmount.toDoubleOrNull() ?: 0.1) * Math.pow(10.0, TokenDecimals.get(sellToken.symbol).toDouble())
+                    val jumperUrl = "https://jumper.exchange/?fromChain=$fromChain&toChain=$toChain" +
+                            "&fromToken=${sellToken.address}&toToken=${buyToken.address}" +
+                            "&fromAmount=${amount.toLong()}&wallet=$dummyWallet"
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(jumperUrl))
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        android.widget.Toast.makeText(context, "خطا در باز کردن مرورگر: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B5CF6)),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("سواپ Cross-Chain (اتصال به Jumper)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+        }
     }
 
     if (showSellSelector) TokenSelectorSheet(onDismiss = { showSellSelector = false }, onSelect = { sellToken = it; showSellSelector = false }, onLookupToken = onLookupToken)
