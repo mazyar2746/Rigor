@@ -229,11 +229,12 @@ fun ProfessionalSwapTab(
                     val fromChain = chainKey(sellToken.chainId)
                     val toChain = chainKey(buyToken.chainId)
                     val amount = (sellAmount.toDoubleOrNull() ?: 0.1) * Math.pow(10.0, TokenDecimals.get(sellToken.symbol).toDouble())
-                    val jumperUrl = "https://jumper.exchange/?fromChain=$fromChain&toChain=$toChain" +
-                            "&fromToken=${sellToken.address}&toToken=${buyToken.address}" +
-                            "&fromAmount=${amount.toLong()}&wallet=$dummyWallet"
+                    val rangoUrl = "https://app.rango.exchange/swap/" +
+                            "${sellToken.symbol}.${sellToken.address}-${sellToken.chainId}/" +
+                            "${buyToken.symbol}.${buyToken.address}-${buyToken.chainId}/" +
+                            "?${sellAmount}"
                     try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(jumperUrl))
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(rangoUrl))
                         context.startActivity(intent)
                     } catch (e: Exception) {
                         android.widget.Toast.makeText(context, "خطا در باز کردن مرورگر: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
