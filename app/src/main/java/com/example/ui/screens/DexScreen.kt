@@ -226,11 +226,10 @@ fun ProfessionalSwapTab(
             )
             Button(
                 onClick = {
-                    val rangoUrl = "https://app.rango.exchange/swap/" +
-                            "${sellToken.symbol}.${sellToken.address}-${sellToken.chainId}/" +
-                            "${buyToken.symbol}.${buyToken.address}-${buyToken.chainId}/" +
-                            "?${sellAmount}"
-                    crossChainUrl = rangoUrl
+                    val rubicUrl = "https://rubic.exchange/?from=${sellToken.chainId}&to=${buyToken.chainId}" +
+                            "&tokenFrom=${sellToken.address}&tokenTo=${buyToken.address}" +
+                            "&amount=${sellAmount}"
+                    crossChainUrl = rubicUrl
                     showCrossChainWeb = true
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
