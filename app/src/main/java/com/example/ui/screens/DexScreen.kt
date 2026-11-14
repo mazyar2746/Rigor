@@ -209,10 +209,13 @@ fun TokenSelectorSheet(
 
     // Debounce for contract address search
     LaunchedEffect(searchQuery) {
-        if (searchQuery.startsWith("0x") && searchQuery.length >= 40) {
+        // پاک کردن فاصله‌ها و اینترهای احتمالی
+        val cleanAddress = searchQuery.trim().replace("\\s".toRegex(), "")
+        
+        if (cleanAddress.startsWith("0x") && cleanAddress.length == 42) {
             isSearchingAddress = true
             delay(500) // wait for user to finish typing/pasting
-            onLookupToken(searchQuery) { result ->
+            onLookupToken(cleanAddress) { result ->
                 foundToken = result
                 isSearchingAddress = false
             }
