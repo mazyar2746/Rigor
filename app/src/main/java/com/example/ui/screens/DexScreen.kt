@@ -219,25 +219,11 @@ fun ProfessionalSwapTab(
             ) { Text(text = if (isLoading) "در حال دریافت قیمت..." else "اتصال کیف پول و سواپ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
         } else {
             Text(
-                "شبکه‌های این دو توکن متفاوت هستند.",
+                "سواپ بین دو شبکه مختلف در حال حاضر در دسترس نیست. لطفا هر دو توکن را از یک شبکه انتخاب کنید.",
                 color = Color(0xFFF59E0B), fontSize = 13.sp,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
-            Button(
-                onClick = {
-                    val rubicUrl = "https://rubic.exchange/?from=${sellToken.chainId}&to=${buyToken.chainId}" +
-                            "&tokenFrom=${sellToken.address}&tokenTo=${buyToken.address}" +
-                            "&amount=${sellAmount}"
-                    crossChainUrl = rubicUrl
-                    showCrossChainWeb = true
-                },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B5CF6)),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text("سواپ Cross-Chain (اتصال به Jumper)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            }
         }
     }
 
