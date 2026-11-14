@@ -40,13 +40,14 @@ class DexRepository {
         buyTokenAddress: String,
         sellAmount: String,
         walletAddress: String,
-        sellTokenSymbol: String
+        sellTokenSymbol: String,
+        chainId: Int = 56
     ) = withContext(Dispatchers.IO) {
         _isLoading.value = true
         _errorMessage.value = null
         _currentQuote.value = null
         try {
-            val quote = remote.getQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress, sellTokenSymbol)
+            val quote = remote.getQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress, sellTokenSymbol, chainId)
             if (quote != null) _currentQuote.value = quote
             else _errorMessage.value = "خطا در دریافت قیمت."
         } catch (t: Throwable) {

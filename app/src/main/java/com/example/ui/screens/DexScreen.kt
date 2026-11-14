@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
@@ -35,6 +33,14 @@ import com.example.ui.theme.RigourCyan
 import com.example.ui.theme.RigourSurface
 import kotlinx.coroutines.delay
 
+private fun networkName(chainId: Int): String = when (chainId) {
+    56 -> "BSC"
+    1 -> "Ethereum"
+    137 -> "Polygon"
+    42161 -> "Arbitrum"
+    else -> "BSC"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DexScreen(
@@ -47,7 +53,7 @@ fun DexScreen(
     isPoolsLoading: Boolean,
     lang: Language,
     onBack: () -> Unit,
-    onGetQuote: (String, String, String, String, String) -> Unit,
+    onGetQuote: (String, String, String, String, String, Int) -> Unit,
     onLoadChart: (String, String) -> Unit,
     onLoadChartForSymbol: (String) -> Unit,
     onLoadPools: (String) -> Unit,
@@ -67,7 +73,7 @@ fun DexScreen(
 
     Column(modifier = Modifier.fillMaxSize().background(RigourBackground)) {
         TopAppBar(
-            title = { Text("دکس (BSC)", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+            title = { Text("دکس چندشبکه‌ای", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = RigourCyan)
@@ -98,7 +104,7 @@ fun ProfessionalSwapTab(
     isLoading: Boolean,
     errorMessage: String?,
     lang: Language,
-    onGetQuote: (String, String, String, String, String) -> Unit,
+    onGetQuote: (String, String, String, String, String, Int) -> Unit,
     onClearState: () -> Unit,
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit
 ) {
@@ -110,10 +116,12 @@ fun ProfessionalSwapTab(
     var showSellSelector by remember { mutableStateOf(false) }
     var showBuySelector by remember { mutableStateOf(false) }
 
+    val sameNetwork = sellToken.chainId == buyToken.chainId
+
     LaunchedEffect(sellAmount, sellToken, buyToken) {
         val amount = sellAmount.toDoubleOrNull() ?: 0.0
-        if (amount > 0) {
-            onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet, sellToken.symbol)
+        if (amount > 0 && sameNetwork) {
+            onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet, sellToken.symbol, sellToken.chainId)
         } else {
             onClearState()
         }
@@ -122,7 +130,10 @@ fun ProfessionalSwapTab(
     Column(modifier = Modifier.padding(16.dp)) {
         Card(colors = CardDefaults.cardColors(containerColor = RigourSurface), shape = RoundedCornerShape(16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("شما می‌فروشید", color = Color.Gray, fontSize = 12.sp)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("شما می‌فروشید", color = Color.Gray, fontSize = 12.sp)
+                    Text(networkName(sellToken.chainId), color = RigourCyan.copy(alpha = 0.7f), fontSize = 10.sp)
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
@@ -156,7 +167,10 @@ fun ProfessionalSwapTab(
 
         Card(colors = CardDefaults.cardColors(containerColor = RigourSurface), shape = RoundedCornerShape(16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("شما دریافت می‌کنید", color = Color.Gray, fontSize = 12.sp)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("شما دریافت می‌کنید", color = Color.Gray, fontSize = 12.sp)
+                    Text(networkName(buyToken.chainId), color = RigourCyan.copy(alpha = 0.7f), fontSize = 10.sp)
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -178,6 +192,15 @@ fun ProfessionalSwapTab(
             }
         }
 
+        if (!sameNetwork) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "هر دو توکن باید روی یک شبکه باشند. لطفا توکن دوم را از شبکه‌ی " + networkName(sellToken.chainId) + " انتخاب کنید.",
+                color = Color(0xFFF59E0B), fontSize = 12.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
         if (errorMessage != null) {
             Text(text = errorMessage, color = Color.Red, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
@@ -188,7 +211,7 @@ fun ProfessionalSwapTab(
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = RigourCyan),
             shape = RoundedCornerShape(16.dp),
-            enabled = quote != null && !isLoading
+            enabled = quote != null && !isLoading && sameNetwork
         ) { Text(text = if (isLoading) "در حال دریافت قیمت..." else "اتصال کیف پول و سواپ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
     }
 
@@ -207,14 +230,11 @@ fun TokenSelectorSheet(
     var foundToken by remember { mutableStateOf<DexTokenInfo?>(null) }
     var isSearchingAddress by remember { mutableStateOf(false) }
 
-    // Debounce for contract address search
     LaunchedEffect(searchQuery) {
-        // پاک کردن فاصله‌ها و اینترهای احتمالی
         val cleanAddress = searchQuery.trim().replace("\\s".toRegex(), "")
-        
         if (cleanAddress.startsWith("0x") && cleanAddress.length == 42) {
             isSearchingAddress = true
-            delay(500) // wait for user to finish typing/pasting
+            delay(500)
             onLookupToken(cleanAddress) { result ->
                 foundToken = result
                 isSearchingAddress = false
@@ -253,22 +273,31 @@ fun TokenSelectorSheet(
                 Box(modifier = Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = RigourCyan, modifier = Modifier.size(30.dp))
                 }
-            } else if (searchQuery.startsWith("0x") && searchQuery.length >= 40) {
+            } else if (searchQuery.trim().replace("\\s".toRegex(), "").startsWith("0x") && searchQuery.trim().replace("\\s".toRegex(), "").length == 42) {
                 if (localFoundToken != null) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().clickable { 
-                            onSelect(DexToken(localFoundToken.symbol, localFoundToken.name, localFoundToken.address, 0.0))
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            onSelect(DexToken(
+                                symbol = localFoundToken.symbol,
+                                name = localFoundToken.name,
+                                address = localFoundToken.address,
+                                priceUsd = 0.0,
+                                imageUrl = null,
+                                chainId = localFoundToken.chainId
+                            ))
                         }.padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(modifier = Modifier.size(32.dp).clip(RoundedCornerShape(50)).background(RigourCyan.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(50)).background(RigourCyan.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
                             Text(localFoundToken.symbol.take(1), color = RigourCyan, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(localFoundToken.symbol, color = RigourCyan, fontWeight = FontWeight.Bold)
                             Text(localFoundToken.name, color = Color.White, fontSize = 12.sp)
-                            Text("شبکه: " + localFoundToken.network, color = Color.Gray, fontSize = 10.sp)
+                        }
+                        Box(modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(RigourCyan.copy(alpha = 0.15f)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                            Text(networkName(localFoundToken.chainId), color = RigourCyan, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 } else {
@@ -285,9 +314,12 @@ fun TokenSelectorSheet(
                                 Text(token.symbol.take(1), color = RigourCyan, fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(token.symbol, color = Color.White, fontWeight = FontWeight.Bold)
                                 Text(token.name, color = Color.Gray, fontSize = 12.sp)
+                            }
+                            Box(modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(RigourBackground).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                                Text(networkName(token.chainId), color = RigourCyan.copy(alpha = 0.8f), fontSize = 10.sp)
                             }
                         }
                     }
@@ -341,7 +373,7 @@ fun ChartAndPoolsTab(
 
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            Text("توکن‌های پرطرفدار (BSC/OKX)", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("توکن‌های پرطرفدار", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
         }
 

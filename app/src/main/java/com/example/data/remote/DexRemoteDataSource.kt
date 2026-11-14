@@ -28,11 +28,12 @@ class DexRemoteDataSource {
         buyTokenAddress: String,
         sellAmount: String,
         walletAddress: String,
-        sellTokenSymbol: String
+        sellTokenSymbol: String,
+        chainId: Int = 56
     ): DexQuote? = withContext(Dispatchers.IO) {
         try {
             val decimals = TokenDecimals.get(sellTokenSymbol)
-            val url = "$baseUrl/quote?chainId=56" +
+            val url = "$baseUrl/quote?chainId=$chainId" +
                     "&sellToken=$sellTokenAddress" +
                     "&buyToken=$buyTokenAddress" +
                     "&sellAmount=" + try { java.math.BigDecimal(sellAmount).multiply(java.math.BigDecimal.TEN.pow(decimals)).toBigInteger().toString() } catch (e: Exception) { "0" } +

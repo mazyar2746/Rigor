@@ -5,7 +5,8 @@ data class DexToken(
     val name: String,
     val address: String,
     val priceUsd: Double,
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    val chainId: Int = 56
 )
 
 data class DexTokenInfo(
@@ -13,6 +14,7 @@ data class DexTokenInfo(
     val name: String,
     val address: String,
     val network: String,
+    val chainId: Int,
     val decimals: Int
 )
 
@@ -88,7 +90,7 @@ object DexTokens {
 object TokenDecimals {
     private val map = mapOf(
         "USDT" to 18, "BUSD" to 18, "USDC" to 18,
-        "BTC" to 8, "DOGE" to 8, 
+        "BTC" to 8, "DOGE" to 8,
         "SHIB" to 18, "ETH" to 18, "BNB" to 18, "CAKE" to 18, "XRP" to 18, "ADA" to 18, "TRX" to 6
     )
     fun get(symbol: String): Int = map[symbol.uppercase()] ?: 18
