@@ -226,12 +226,7 @@ fun ProfessionalSwapTab(
                 enabled = quote != null && !isLoading
             ) { Text(text = if (isLoading) "در حال دریافت قیمت..." else "اتصال کیف پول و سواپ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
         } else {
-            Text(
-                "سواپ بین دو شبکه مختلف در حال حاضر در دسترس نیست. لطفا هر دو توکن را از یک شبکه انتخاب کنید.",
-                color = Color(0xFFF59E0B), fontSize = 13.sp,
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
+            
         }
     }
 
