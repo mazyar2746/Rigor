@@ -69,7 +69,9 @@ fun DexScreen(
     onLoadChartForSymbol: (String) -> Unit,
     onLoadPools: (String) -> Unit,
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
-    onClearState: () -> Unit
+    onClearState: () -> Unit,
+    walletAddress: String? = null,
+    onConnectWallet: () -> Unit = {}
 ) {
     var showChart by remember { mutableStateOf(true) }
     var chartSymbol by remember { mutableStateOf("BNB") }
@@ -150,7 +152,8 @@ fun DexScreen(
                 // --- SWAP SECTION ---
                 ProfessionalSwapTab(
                     quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken,
-                    onChartRequest = { symbol -> chartSymbol = symbol }
+                    onChartRequest = { symbol -> chartSymbol = symbol },
+                    walletAddress = walletAddress, onConnectWallet = onConnectWallet
                 )
             }
         }
@@ -323,12 +326,26 @@ fun ProfessionalSwapTab(
 
         if (sameNetwork) {
             Button(
-                onClick = { android.widget.Toast.makeText(context, "اتصال کیف پول در نسخه بعدی فعال می‌شود", android.widget.Toast.LENGTH_SHORT).show() },
+                onClick = {
+                if (walletAddress == null) {
+                    onConnectWallet()
+                    android.widget.Toast.makeText(context, "کیف پول با موفقیت متصل شد!", android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    android.widget.Toast.makeText(context, "کیف پول قبلاً متصل است: ${walletAddress.take(10)}...", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = RigourCyan),
                 shape = RoundedCornerShape(16.dp),
                 enabled = quote != null && !isLoading
-            ) { Text(text = if (isLoading) "در حال دریافت قیمت..." else "اتصال کیف پول و سواپ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            ) { Text(
+                    text = when {
+                        isLoading -> "در حال دریافت قیمت..."
+                        walletAddress == null -> "اتصال کیف پول"
+                        else -> "سواپ (${walletAddress.take(6)}...${walletAddress.takeLast(4)})"
+                    },
+                    color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp
+                ) }
         } else {
             Text(
                 "سواپ بین دو شبکه مختلف در حال حاضر در دسترس نیست. لطفا هر دو توکن را از یک شبکه انتخاب کنید.",

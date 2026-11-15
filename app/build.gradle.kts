@@ -85,10 +85,8 @@ googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.W
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
+    implementation("org.web3j:core:4.12.2")
     // WalletConnect
-    implementation("com.walletconnect:android-core:1.38.0")
-    implementation("com.walletconnect:sign:2.17.0")
-    implementation("com.walletconnect:android-utils:1.38.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.11.0")
 

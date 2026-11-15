@@ -490,6 +490,8 @@ fun RigourApp(
                             onLookupToken = { address, callback -> viewModel.lookupDexToken(address, callback) },
                             onLoadPools = { network -> viewModel.getDexNewPools(network) },
                             onClearState = { viewModel.clearDexState() },
+                            walletAddress = viewModel.walletConnectedAddress.collectAsStateWithLifecycle().value,
+                            onConnectWallet = { viewModel.connectWallet() },
                         )
                     }
                     is Screen.Markets -> {
