@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
+import com.example.data.model.CrossChainQuote
 import com.example.data.model.DexTokenInfo
 import com.example.data.model.TokenDecimals
 import com.google.gson.Gson
@@ -192,6 +193,45 @@ class DexRemoteDataSource {
             }
         } catch (t: Throwable) {
             Log.e("DexRemote", "lookupTokenByAddress failed: ${t.message}")
+            return@withContext null
+        }
+    }
+
+    suspend fun getCrossChainQuote(
+        originChain: Int,
+        destinationChain: Int,
+        sellToken: String,
+        buyToken: String,
+        sellAmount: String,
+        originAddress: String
+    ): CrossChainQuote? = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/cross-chain-0x?originChain=$originChain" +
+                    "&destinationChain=$destinationChain" +
+                    "&sellToken=$sellToken" +
+                    "&buyToken=$buyToken" +
+                    "&sellAmount=$sellAmount" +
+                    "&originAddress=$originAddress" +
+                    "&feeBps=25" +
+                    "&feeRecipient=0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab"
+            
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext null
+                val body = response.body?.string() ?: return@withContext null
+                val json = gson.fromJson(body, JsonObject::class.java)
+                
+                if (!json.get("liquidityAvailable")?.asBoolean.isNullOrFalse()) return@withContext null
+                
+                return@withContext CrossChainQuote(
+                    buyAmount = json.get("buyAmount")?.asString ?: "0",
+                    sellAmount = json.get("sellAmount")?.asString ?: "0",
+                    estimatedDuration = json.get("estimatedDuration")?.asDouble ?: 0.0,
+                    liquidityAvailable = json.get("liquidityAvailable")?.asBoolean ?: false
+                )
+            }
+        } catch (t: Throwable) {
+            Log.e("DexRemote", "getCrossChainQuote failed: ${'$'}{t.message}")
             return@withContext null
         }
     }

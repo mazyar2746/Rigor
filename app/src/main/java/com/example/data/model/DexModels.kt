@@ -31,6 +31,23 @@ data class DexQuote(
     val integratorFee: String? = null
 )
 
+
+data class CrossChainQuote(
+    val buyAmount: String,
+    val sellAmount: String,
+    val estimatedDuration: Double = 0.0,
+    val liquidityAvailable: Boolean = false,
+    val transaction: CrossChainTransaction? = null
+)
+
+data class CrossChainTransaction(
+    val to: String,
+    val data: String,
+    val value: String,
+    val gas: String,
+    val gasPrice: String
+)
+
 data class DexPool(
     val address: String,
     val symbol: String,

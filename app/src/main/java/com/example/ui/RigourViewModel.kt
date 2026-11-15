@@ -14,6 +14,7 @@ import com.example.data.repository.CryptoRepository
 import com.example.data.repository.ForexRepository
 import com.example.data.repository.DexRepository
 import com.example.data.model.DexQuote
+import com.example.data.model.CrossChainQuote
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.ForexPair
@@ -460,6 +461,14 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             val token = dexRepository.lookupTokenByAddress(address)
             onResult(token)
+        }
+    }
+
+    val crossChainQuote: StateFlow<CrossChainQuote?> = dexRepository.crossChainQuote
+
+    fun getCrossChainQuote(originChain: Int, destinationChain: Int, sellToken: String, buyToken: String, sellAmount: String, originAddress: String) {
+        viewModelScope.launch {
+            dexRepository.fetchCrossChainQuote(originChain, destinationChain, sellToken, buyToken, sellAmount, originAddress)
         }
     }
 }

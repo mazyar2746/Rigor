@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
+import com.example.data.model.CrossChainQuote
 import com.example.data.model.DexTokenInfo
 import com.example.data.remote.DexRemoteDataSource
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +17,9 @@ class DexRepository {
 
     private val _currentQuote = MutableStateFlow<DexQuote?>(null)
     val currentQuote = _currentQuote.asStateFlow()
+
+    private val _crossChainQuote = MutableStateFlow<CrossChainQuote?>(null)
+    val crossChainQuote = _crossChainQuote.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -95,5 +99,25 @@ class DexRepository {
         _currentQuote.value = null
         _errorMessage.value = null
         _isLoading.value = false
+    }
+
+    suspend fun fetchCrossChainQuote(
+        originChain: Int,
+        destinationChain: Int,
+        sellToken: String,
+        buyToken: String,
+        sellAmount: String,
+        originAddress: String
+    ) = withContext(Dispatchers.IO) {
+        _isLoading.value = true
+        _errorMessage.value = null
+        _crossChainQuote.value = null
+        try {
+            val quote = remote.getCrossChainQuote(originChain, destinationChain, sellToken, buyToken, sellAmount, originAddress)
+            if (quote != null) _crossChainQuote.value = quote
+            else _errorMessage.value = "خطا در دریافت قیمت Cross-Chain"
+        } finally {
+            _isLoading.value = false
+        }
     }
 }

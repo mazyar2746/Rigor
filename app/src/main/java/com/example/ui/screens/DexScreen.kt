@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
+import com.example.data.model.CrossChainQuote
 import com.example.data.model.DexToken
 import com.example.data.model.DexTokenInfo
 import com.example.data.model.DexTokens
@@ -68,7 +69,9 @@ fun DexScreen(
     onLoadChartForSymbol: (String) -> Unit,
     onLoadPools: (String) -> Unit,
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
-    onClearState: () -> Unit
+    onClearState: () -> Unit,
+    crossChainQuote: CrossChainQuote? = null,
+    onGetCrossChainQuote: (Int, Int, String, String, String, String) -> Unit = {_,_,_,_,_,_ ->}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var chartSymbol by remember { mutableStateOf("BNB") }
@@ -100,7 +103,7 @@ fun DexScreen(
         }
 
         if (selectedTab == 0) {
-            ProfessionalSwapTab(quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken)
+            ProfessionalSwapTab(quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken, crossChainQuote, onGetCrossChainQuote)
         } else {
             ChartAndPoolsTab(chartData, isChartLoading, newPools, isPoolsLoading, chartSymbol, onSymbolChange = { chartSymbol = it })
         }
@@ -115,7 +118,9 @@ fun ProfessionalSwapTab(
     lang: Language,
     onGetQuote: (String, String, String, String, String, Int) -> Unit,
     onClearState: () -> Unit,
-    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit
+    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
+    crossChainQuote: CrossChainQuote? = null,
+    onGetCrossChainQuote: (Int, Int, String, String, String, String) -> Unit = {_,_,_,_,_,_ ->}
 ) {
     val context = LocalContext.current
     var sellAmount by remember { mutableStateOf("0.1") }
@@ -133,6 +138,9 @@ fun ProfessionalSwapTab(
         val amount = sellAmount.toDoubleOrNull() ?: 0.0
         if (amount > 0 && sameNetwork) {
             onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet, sellToken.symbol, sellToken.chainId)
+        } else if (amount > 0 && !sameNetwork) {
+            onGetCrossChainQuote(sellToken.chainId, buyToken.chainId, sellToken.address, buyToken.address, 
+                java.math.BigDecimal(sellAmount).multiply(java.math.BigDecimal.TEN.pow(TokenDecimals.get(sellToken.symbol))).toBigInteger().toString(), dummyWallet)
         } else {
             onClearState()
         }
@@ -248,7 +256,9 @@ fun ProfessionalSwapTab(
 fun TokenSelectorSheet(
     onDismiss: () -> Unit,
     onSelect: (DexToken) -> Unit,
-    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit
+    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
+    crossChainQuote: CrossChainQuote? = null,
+    onGetCrossChainQuote: (Int, Int, String, String, String, String) -> Unit = {_,_,_,_,_,_ ->}
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var foundToken by remember { mutableStateOf<DexTokenInfo?>(null) }

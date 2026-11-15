@@ -489,7 +489,9 @@ fun RigourApp(
                             onLoadChartForSymbol = { symbol -> viewModel.getDexChartForSymbol(symbol) },
                             onLookupToken = { address, callback -> viewModel.lookupDexToken(address, callback) },
                             onLoadPools = { network -> viewModel.getDexNewPools(network) },
-                            onClearState = { viewModel.clearDexState() }
+                            onClearState = { viewModel.clearDexState() },
+                            crossChainQuote = viewModel.crossChainQuote.collectAsStateWithLifecycle().value,
+                            onGetCrossChainQuote = { oChain, dChain, sT, bT, amt, addr -> viewModel.getCrossChainQuote(oChain, dChain, sT, bT, amt, addr) }
                         )
                     }
                     is Screen.Markets -> {
