@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
-import com.example.data.model.CrossChainQuote
 import com.example.data.model.DexToken
 import com.example.data.model.DexTokenInfo
 import com.example.data.model.DexTokens
@@ -45,14 +44,6 @@ private fun networkName(chainId: Int): String = when (chainId) {
     else -> "BSC"
 }
 
-private fun chainKey(chainId: Int): String = when (chainId) {
-    56 -> "bsc"
-    1 -> "eth"
-    137 -> "pol"
-    42161 -> "arb"
-    else -> "bsc"
-}
-
 @Composable
 fun DexScreen(
     quote: DexQuote?,
@@ -69,9 +60,7 @@ fun DexScreen(
     onLoadChartForSymbol: (String) -> Unit,
     onLoadPools: (String) -> Unit,
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
-    onClearState: () -> Unit,
-    crossChainQuote: CrossChainQuote? = null,
-    onGetCrossChainQuote: (Int, Int, String, String, String, String) -> Unit = {_,_,_,_,_,_ ->}
+    onClearState: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var chartSymbol by remember { mutableStateOf("BNB") }
@@ -103,7 +92,7 @@ fun DexScreen(
         }
 
         if (selectedTab == 0) {
-            ProfessionalSwapTab(quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken, crossChainQuote, onGetCrossChainQuote)
+            ProfessionalSwapTab(quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken)
         } else {
             ChartAndPoolsTab(chartData, isChartLoading, newPools, isPoolsLoading, chartSymbol, onSymbolChange = { chartSymbol = it })
         }
@@ -118,9 +107,7 @@ fun ProfessionalSwapTab(
     lang: Language,
     onGetQuote: (String, String, String, String, String, Int) -> Unit,
     onClearState: () -> Unit,
-    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
-    crossChainQuote: CrossChainQuote? = null,
-    onGetCrossChainQuote: (Int, Int, String, String, String, String) -> Unit = {_,_,_,_,_,_ ->}
+    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit
 ) {
     val context = LocalContext.current
     var sellAmount by remember { mutableStateOf("0.1") }
@@ -128,8 +115,6 @@ fun ProfessionalSwapTab(
     var buyToken by remember { mutableStateOf(DexTokens.BSC_TOKENS[1]) }
     val dummyWallet = "0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab"
     var showSellSelector by remember { mutableStateOf(false) }
-    var showCrossChainWeb by remember { mutableStateOf(false) }
-    var crossChainUrl by remember { mutableStateOf("") }
     var showBuySelector by remember { mutableStateOf(false) }
 
     val sameNetwork = sellToken.chainId == buyToken.chainId
@@ -138,9 +123,6 @@ fun ProfessionalSwapTab(
         val amount = sellAmount.toDoubleOrNull() ?: 0.0
         if (amount > 0 && sameNetwork) {
             onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet, sellToken.symbol, sellToken.chainId)
-        } else if (amount > 0 && !sameNetwork) {
-            onGetCrossChainQuote(sellToken.chainId, buyToken.chainId, sellToken.address, buyToken.address, 
-                java.math.BigDecimal(sellAmount).multiply(java.math.BigDecimal.TEN.pow(TokenDecimals.get(sellToken.symbol))).toBigInteger().toString(), dummyWallet)
         } else {
             onClearState()
         }
@@ -212,7 +194,7 @@ fun ProfessionalSwapTab(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        if (errorMessage != null && crossChainQuote == null) {
+        if (errorMessage != null) {
             Text(text = errorMessage, color = Color.Red, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -226,24 +208,17 @@ fun ProfessionalSwapTab(
                 enabled = quote != null && !isLoading
             ) { Text(text = if (isLoading) "در حال دریافت قیمت..." else "اتصال کیف پول و سواپ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp) }
         } else {
-            
+            Text(
+                "سواپ بین دو شبکه مختلف در حال حاضر در دسترس نیست. لطفا هر دو توکن را از یک شبکه انتخاب کنید.",
+                color = Color(0xFFF59E0B), fontSize = 13.sp,
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
     }
 
     if (showSellSelector) TokenSelectorSheet(onDismiss = { showSellSelector = false }, onSelect = { sellToken = it; showSellSelector = false }, onLookupToken = onLookupToken)
     if (showBuySelector) TokenSelectorSheet(onDismiss = { showBuySelector = false }, onSelect = { buyToken = it; showBuySelector = false }, onLookupToken = onLookupToken)
-    
-    if (showCrossChainWeb) {
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { showCrossChainWeb = false },
-            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            CrossChainWebView(
-                url = crossChainUrl,
-                onBack = { showCrossChainWeb = false }
-            )
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -251,9 +226,7 @@ fun ProfessionalSwapTab(
 fun TokenSelectorSheet(
     onDismiss: () -> Unit,
     onSelect: (DexToken) -> Unit,
-    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
-    crossChainQuote: CrossChainQuote? = null,
-    onGetCrossChainQuote: (Int, Int, String, String, String, String) -> Unit = {_,_,_,_,_,_ ->}
+    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var foundToken by remember { mutableStateOf<DexTokenInfo?>(null) }
@@ -306,14 +279,7 @@ fun TokenSelectorSheet(
                 if (localFoundToken != null) {
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
-                            onSelect(DexToken(
-                                symbol = localFoundToken.symbol,
-                                name = localFoundToken.name,
-                                address = localFoundToken.address,
-                                priceUsd = 0.0,
-                                imageUrl = null,
-                                chainId = localFoundToken.chainId
-                            ))
+                            onSelect(DexToken(localFoundToken.symbol, localFoundToken.name, localFoundToken.address, 0.0, null, localFoundToken.chainId))
                         }.padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
