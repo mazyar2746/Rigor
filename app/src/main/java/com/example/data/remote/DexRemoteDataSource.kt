@@ -220,6 +220,7 @@ class DexRemoteDataSource {
                 if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
                 val json = gson.fromJson(body, JsonObject::class.java)
+                android.util.Log.d("CrossChainDEBUG", "Response: ${body.take(500)}")
                 
                 if (json.get("liquidityAvailable")?.asBoolean != true) return@withContext null
                 
