@@ -97,6 +97,7 @@ class DexRepository {
 
     fun clearState() {
         _currentQuote.value = null
+        _crossChainQuote.value = null
         _errorMessage.value = null
         _isLoading.value = false
     }
