@@ -2,6 +2,7 @@
 
 package com.example.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,16 +13,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.data.model.Candle
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
@@ -73,28 +79,44 @@ fun DexScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(RigourBackground)) {
-        TopAppBar(
-            title = { Text("دکس چندشبکه‌ای", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = RigourCyan)
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = RigourSurface)
+    Box(modifier = Modifier.fillMaxSize().background(RigourBackground)) {
+        // --- Watermark لوگوی Rigor در پس‌زمینه ---
+        Image(
+            painter = painterResource(id = R.drawable.rigour_logo),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(400.dp)
+                .alpha(0.05f),
+            contentScale = ContentScale.Fit
         )
 
-        TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
-            tabs.forEachIndexed { index, title ->
-                Tab(selected = selectedTab == index, onClick = { selectedTab = index },
-                    text = { Text(title, color = if (selectedTab == index) RigourCyan else Color.Gray) })
-            }
-        }
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = { Text("دکس چندشبکه‌ای", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = RigourCyan)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = RigourSurface)
+            )
 
-        if (selectedTab == 0) {
-            ProfessionalSwapTab(quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken)
-        } else {
-            ChartAndPoolsTab(chartData, isChartLoading, newPools, isPoolsLoading, chartSymbol, onSymbolChange = { chartSymbol = it })
+            TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(selected = selectedTab == index, onClick = { selectedTab = index },
+                        text = { Text(title, color = if (selectedTab == index) RigourCyan else Color.Gray) })
+                }
+            }
+
+            if (selectedTab == 0) {
+                ProfessionalSwapTab(
+                    quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken,
+                    onChartRequest = onLoadChartForSymbol
+                )
+            } else {
+                ChartAndPoolsTab(chartData, isChartLoading, newPools, isPoolsLoading, chartSymbol, onSymbolChange = { chartSymbol = it })
+            }
         }
     }
 }
@@ -107,7 +129,8 @@ fun ProfessionalSwapTab(
     lang: Language,
     onGetQuote: (String, String, String, String, String, Int) -> Unit,
     onClearState: () -> Unit,
-    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit
+    onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
+    onChartRequest: (String) -> Unit
 ) {
     val context = LocalContext.current
     var sellAmount by remember { mutableStateOf("0.1") }
@@ -116,6 +139,8 @@ fun ProfessionalSwapTab(
     val dummyWallet = "0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab"
     var showSellSelector by remember { mutableStateOf(false) }
     var showBuySelector by remember { mutableStateOf(false) }
+    var showSlippageDialog by remember { mutableStateOf(false) }
+    var slippage by remember { mutableStateOf(0.5) }
 
     val sameNetwork = sellToken.chainId == buyToken.chainId
 
@@ -129,6 +154,21 @@ fun ProfessionalSwapTab(
     }
 
     Column(modifier = Modifier.padding(16.dp)) {
+        // --- بالای صفحه: دکمه تنظیمات ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Slippage: ${slippage}%", color = Color.Gray, fontSize = 11.sp)
+            Spacer(modifier = Modifier.width(4.dp))
+            IconButton(onClick = { showSlippageDialog = true }, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = RigourCyan, modifier = Modifier.size(18.dp))
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // --- SELL BOX ---
         Card(colors = CardDefaults.cardColors(containerColor = RigourSurface), shape = RoundedCornerShape(16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -166,6 +206,7 @@ fun ProfessionalSwapTab(
             contentAlignment = Alignment.Center
         ) { Text("↓", color = RigourCyan, fontSize = 20.sp, fontWeight = FontWeight.Bold) }
 
+        // --- BUY BOX ---
         Card(colors = CardDefaults.cardColors(containerColor = RigourSurface), shape = RoundedCornerShape(16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -189,6 +230,14 @@ fun ProfessionalSwapTab(
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = RigourCyan, modifier = Modifier.size(20.dp))
                     }
+                }
+                // نمایش قیمت دلاری
+                if (quote != null && quote.price.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "۱ ${sellToken.symbol} ≈ ${quote.price} ${buyToken.symbol}",
+                        color = Color.Gray, fontSize = 11.sp
+                    )
                 }
             }
         }
@@ -217,8 +266,32 @@ fun ProfessionalSwapTab(
         }
     }
 
-    if (showSellSelector) TokenSelectorSheet(onDismiss = { showSellSelector = false }, onSelect = { sellToken = it; showSellSelector = false }, onLookupToken = onLookupToken)
-    if (showBuySelector) TokenSelectorSheet(onDismiss = { showBuySelector = false }, onSelect = { buyToken = it; showBuySelector = false }, onLookupToken = onLookupToken)
+    if (showSellSelector) TokenSelectorSheet(onDismiss = { showSellSelector = false }, onSelect = { sellToken = it; showSellSelector = false; onChartRequest(it.symbol) }, onLookupToken = onLookupToken)
+    if (showBuySelector) TokenSelectorSheet(onDismiss = { showBuySelector = false }, onSelect = { buyToken = it; showBuySelector = false; onChartRequest(it.symbol) }, onLookupToken = onLookupToken)
+
+    if (showSlippageDialog) {
+        AlertDialog(
+            onDismissRequest = { showSlippageDialog = false },
+            containerColor = RigourSurface,
+            title = { Text("تنظیم Slippage", color = Color.White) },
+            text = {
+                Column {
+                    listOf(0.1, 0.5, 1.0, 2.0).forEach { opt ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().clickable { slippage = opt; showSlippageDialog = false }.padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(selected = slippage == opt, onClick = { slippage = opt; showSlippageDialog = false }, colors = RadioButtonDefaults.colors(selectedColor = RigourCyan))
+                            Text("$opt%", color = Color.White, modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSlippageDialog = false }) { Text("باشه", color = RigourCyan) }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -334,7 +407,7 @@ fun ChartAndPoolsTab(
     onSymbolChange: (String) -> Unit
 ) {
     var showSymbolSelector by remember { mutableStateOf(false) }
-    val popularSymbols = listOf("BNB", "BTC", "ETH", "SOL", "XRP", "DOGE", "ADA", "AVAX")
+    val popularSymbols = DexTokens.BSC_TOKENS.map { it.symbol }
 
     LazyColumn(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
