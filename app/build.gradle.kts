@@ -85,6 +85,13 @@ googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.W
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
+    // WalletConnect
+    implementation("com.walletconnect:android-core:1.38.0")
+    implementation("com.walletconnect:sign:2.17.0")
+    implementation("com.walletconnect:android-utils:1.38.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.code.gson:gson:2.11.0")
+
     implementation("com.google.code.gson:gson:2.10.1")
   implementation(platform(libs.androidx.compose.bom))
   implementation(platform(libs.firebase.bom))

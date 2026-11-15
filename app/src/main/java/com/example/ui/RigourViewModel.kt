@@ -13,6 +13,8 @@ import com.example.data.model.UserSubscription
 import com.example.data.repository.CryptoRepository
 import com.example.data.repository.ForexRepository
 import com.example.data.repository.DexRepository
+import com.example.data.wallet.WalletManager
+import android.app.Application
 import com.example.data.model.DexQuote
 import com.example.data.model.CrossChainQuote
 import com.example.data.model.Candle
@@ -52,11 +54,15 @@ sealed class Screen {
 }
 
 class RigourViewModel(application: Application) : AndroidViewModel(application) {
+    init {
+        walletManager.initialize(application)
+    }
 
     private val database = RigourDatabase.getInstance(application)
     private val cryptoRepository = CryptoRepository(database.favoritesDao(), database.coinCacheDao(), context = application)
     private val forexRepository = ForexRepository()
     private val dexRepository = DexRepository()
+    private val walletManager = WalletManager()
     private val subscriptionRepository = SubscriptionRepository(database.subscriptionDao())
 
     // App Navigation
@@ -470,5 +476,16 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             dexRepository.fetchCrossChainQuote(originChain, destinationChain, sellToken, buyToken, sellAmount, originAddress)
         }
+    }
+
+    val walletConnected: StateFlow<String?> = walletManager.connectedAddress
+    val isWalletInitialized: StateFlow<Boolean> = walletManager.isInitialized
+
+    fun connectWallet(uri: String) {
+        walletManager.connect(uri)
+    }
+
+    fun disconnectWallet() {
+        walletManager.disconnect()
     }
 }
