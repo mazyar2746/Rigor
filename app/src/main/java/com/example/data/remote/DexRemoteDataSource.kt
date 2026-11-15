@@ -2,9 +2,9 @@ package com.example.data.remote
 
 import android.util.Log
 import com.example.data.model.Candle
+import com.example.data.model.CrossChainQuote
 import com.example.data.model.DexPool
 import com.example.data.model.DexQuote
-import com.example.data.model.CrossChainQuote
 import com.example.data.model.DexTokenInfo
 import com.example.data.model.TokenDecimals
 import com.google.gson.Gson
@@ -24,6 +24,7 @@ class DexRemoteDataSource {
     private val gson = Gson()
     private val baseUrl = "https://rigor-v339.h-nasiri3247.workers.dev/api/dex"
 
+    // --- 1. Get Swap Quote (0x API - Single Chain) ---
     suspend fun getQuote(
         sellTokenAddress: String,
         buyTokenAddress: String,
@@ -68,6 +69,63 @@ class DexRemoteDataSource {
         }
     }
 
+    // --- 2. Get Cross-Chain Quote (0x API) ---
+    suspend fun getCrossChainQuote(
+        originChain: Int,
+        destinationChain: Int,
+        sellToken: String,
+        buyToken: String,
+        sellAmount: String,
+        originAddress: String
+    ): CrossChainQuote? = withContext(Dispatchers.IO) {
+        try {
+            val url = "$baseUrl/cross-chain-0x?originChain=$originChain" +
+                    "&destinationChain=$destinationChain" +
+                    "&sellToken=$sellToken" +
+                    "&buyToken=$buyToken" +
+                    "&sellAmount=$sellAmount" +
+                    "&originAddress=$originAddress" +
+                    "&feeBps=25" +
+                    "&feeRecipient=0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab"
+
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext null
+                val body = response.body?.string() ?: return@withContext null
+                Log.d("CrossChainDEBUG", "Full response: $body")
+
+                val json = gson.fromJson(body, JsonObject::class.java)
+                
+                val liquidityAvailable = json.get("liquidityAvailable")?.asBoolean ?: false
+                Log.d("CrossChainDEBUG", "Liquidity available: $liquidityAvailable")
+                
+                // In 0x Cross-Chain response, the actual quote is inside "quotes" array
+                var buyAmount = "0"
+                val quotesArray = json.getAsJsonArray("quotes")
+                if (quotesArray != null && quotesArray.size() > 0) {
+                    val firstQuote = quotesArray[0].asJsonObject
+                    buyAmount = firstQuote.get("buyAmount")?.asString ?: "0"
+                    Log.d("CrossChainDEBUG", "Found quote: buyAmount = $buyAmount")
+                } else {
+                    // Fallback: maybe buyAmount is at root level
+                    buyAmount = json.get("buyAmount")?.asString ?: "0"
+                    Log.d("CrossChainDEBUG", "No quotes array, root buyAmount = $buyAmount")
+                }
+
+                return@withContext CrossChainQuote(
+                    buyAmount = buyAmount,
+                    sellAmount = json.get("sellAmount")?.asString ?: "0",
+                    estimatedDuration = json.get("estimatedDuration")?.asDouble ?: 0.0,
+                    liquidityAvailable = liquidityAvailable
+                )
+            }
+        } catch (t: Throwable) {
+            Log.e("DexRemote", "getCrossChainQuote failed: ${t.message}")
+            return@withContext null
+        }
+    }
+
+    // --- 3. Get Chart (OKX API) ---
     suspend fun getChart(network: String, pool: String, interval: String = "1h"): List<Candle>? = withContext(Dispatchers.IO) {
         try {
             val symbol = "BNB-USDT"
@@ -85,14 +143,14 @@ class DexRemoteDataSource {
                 
                 for (i in 0 until dataArray.size()) {
                     val arr = dataArray[i].asJsonArray
-                    val timestamp = arr[0].asLong
-                    val open = arr[1].asDouble
-                    val high = arr[2].asDouble
-                    val low = arr[3].asDouble
-                    val close = arr[4].asDouble
-                    val volume = arr[5].asDouble
-                    
-                    candles.add(Candle(timestamp, open, high, low, close, volume))
+                    candles.add(Candle(
+                        timestamp = arr[0].asLong,
+                        open = arr[1].asDouble,
+                        high = arr[2].asDouble,
+                        low = arr[3].asDouble,
+                        close = arr[4].asDouble,
+                        volume = arr[5].asDouble
+                    ))
                 }
                 return@withContext candles.reversed()
             }
@@ -102,7 +160,6 @@ class DexRemoteDataSource {
         }
     }
 
-    // Chart for a specific token (sync with swap)
     suspend fun getChartForSymbol(symbol: String, interval: String = "1H"): List<Candle>? = withContext(Dispatchers.IO) {
         try {
             val okxSymbol = "${symbol.uppercase()}-USDT"
@@ -119,14 +176,13 @@ class DexRemoteDataSource {
                 
                 for (i in 0 until dataArray.size()) {
                     val arr = dataArray[i].asJsonArray
-                    val timestamp = arr[0].asLong
                     candles.add(Candle(
-                        timestamp,
-                        arr[1].asDouble,
-                        arr[2].asDouble,
-                        arr[3].asDouble,
-                        arr[4].asDouble,
-                        arr[5].asDouble
+                        timestamp = arr[0].asLong,
+                        open = arr[1].asDouble,
+                        high = arr[2].asDouble,
+                        low = arr[3].asDouble,
+                        close = arr[4].asDouble,
+                        volume = arr[5].asDouble
                     ))
                 }
                 return@withContext candles.reversed()
@@ -137,6 +193,7 @@ class DexRemoteDataSource {
         }
     }
 
+    // --- 4. Get Trending Tokens (OKX via Worker) ---
     suspend fun getTrendingTokens(): List<DexPool>? = withContext(Dispatchers.IO) {
         try {
             val url = "https://rigor-v339.h-nasiri3247.workers.dev/api/crypto/list"
@@ -173,6 +230,7 @@ class DexRemoteDataSource {
         }
     }
 
+    // --- 5. Lookup Token by Contract Address (Multi-chain) ---
     suspend fun lookupTokenByAddress(address: String): DexTokenInfo? = withContext(Dispatchers.IO) {
         try {
             val url = "https://rigor-v339.h-nasiri3247.workers.dev/api/dex/lookup-token-multi?address=" + address
@@ -193,46 +251,6 @@ class DexRemoteDataSource {
             }
         } catch (t: Throwable) {
             Log.e("DexRemote", "lookupTokenByAddress failed: ${t.message}")
-            return@withContext null
-        }
-    }
-
-    suspend fun getCrossChainQuote(
-        originChain: Int,
-        destinationChain: Int,
-        sellToken: String,
-        buyToken: String,
-        sellAmount: String,
-        originAddress: String
-    ): CrossChainQuote? = withContext(Dispatchers.IO) {
-        try {
-            val url = "$baseUrl/cross-chain-0x?originChain=$originChain" +
-                    "&destinationChain=$destinationChain" +
-                    "&sellToken=$sellToken" +
-                    "&buyToken=$buyToken" +
-                    "&sellAmount=$sellAmount" +
-                    "&originAddress=$originAddress" +
-                    "&feeBps=25" +
-                    "&feeRecipient=0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab"
-            
-            val request = Request.Builder().url(url).build()
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return@withContext null
-                val body = response.body?.string() ?: return@withContext null
-                val json = gson.fromJson(body, JsonObject::class.java)
-                android.util.Log.d("CrossChainDEBUG", "Response: ${body.take(500)}")
-                
-                if (json.get("liquidityAvailable")?.asBoolean != true) return@withContext null
-                
-                return@withContext CrossChainQuote(
-                    buyAmount = json.get("buyAmount")?.asString ?: "0",
-                    sellAmount = json.get("sellAmount")?.asString ?: "0",
-                    estimatedDuration = json.get("estimatedDuration")?.asDouble ?: 0.0,
-                    liquidityAvailable = json.get("liquidityAvailable")?.asBoolean ?: false
-                )
-            }
-        } catch (t: Throwable) {
-            Log.e("DexRemote", "getCrossChainQuote failed: ${'$'}{t.message}")
             return@withContext null
         }
     }
