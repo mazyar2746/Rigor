@@ -1,5 +1,6 @@
 package com.example.ui
 
+import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.RigourDatabase

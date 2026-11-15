@@ -208,7 +208,9 @@ fun ProfessionalSwapTab(
     onGetQuote: (String, String, String, String, String, Int) -> Unit,
     onClearState: () -> Unit,
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
-    onChartRequest: (String) -> Unit
+    onChartRequest: (String) -> Unit,
+    walletAddress: String? = null,
+    onConnectWallet: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var sellAmount by remember { mutableStateOf("0.1") }
