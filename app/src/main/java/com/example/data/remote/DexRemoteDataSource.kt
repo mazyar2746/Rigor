@@ -221,7 +221,7 @@ class DexRemoteDataSource {
                 val body = response.body?.string() ?: return@withContext null
                 val json = gson.fromJson(body, JsonObject::class.java)
                 
-                if (!json.get("liquidityAvailable")?.asBoolean.isNullOrFalse()) return@withContext null
+                if (json.get("liquidityAvailable")?.asBoolean != true) return@withContext null
                 
                 return@withContext CrossChainQuote(
                     buyAmount = json.get("buyAmount")?.asString ?: "0",
