@@ -212,7 +212,7 @@ fun ProfessionalSwapTab(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        if (errorMessage != null) {
+        if (errorMessage != null && crossChainQuote == null) {
             Text(text = errorMessage, color = Color.Red, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Spacer(modifier = Modifier.height(16.dp))
         }
