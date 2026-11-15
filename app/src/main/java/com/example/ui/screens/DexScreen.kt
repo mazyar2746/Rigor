@@ -8,12 +8,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -68,26 +71,22 @@ fun DexScreen(
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
     onClearState: () -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var showChart by remember { mutableStateOf(true) }
     var chartSymbol by remember { mutableStateOf("BNB") }
-    val tabs = listOf("سواپ", "چارت و توکن‌های جدید")
 
-    LaunchedEffect(selectedTab, chartSymbol) {
-        if (selectedTab == 1) {
-            onLoadChartForSymbol(chartSymbol)
-            onLoadPools("bsc")
-        }
+    LaunchedEffect(chartSymbol) {
+        onLoadChartForSymbol(chartSymbol)
     }
 
     Box(modifier = Modifier.fillMaxSize().background(RigourBackground)) {
-        // --- Watermark لوگوی Rigor در پس‌زمینه ---
+        // Watermark logo
         Image(
             painter = painterResource(id = R.drawable.rigour_logo),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.Center)
                 .size(400.dp)
-                .alpha(0.05f),
+                .alpha(0.04f),
             contentScale = ContentScale.Fit
         )
 
@@ -99,23 +98,99 @@ fun DexScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = RigourCyan)
                     }
                 },
+                actions = {
+                    IconButton(onClick = { showChart = !showChart }) {
+                        Icon(Icons.Default.ShowChart, contentDescription = "Toggle Chart", tint = RigourCyan)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = RigourSurface)
             )
 
-            TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(selected = selectedTab == index, onClick = { selectedTab = index },
-                        text = { Text(title, color = if (selectedTab == index) RigourCyan else Color.Gray) })
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                // --- CHART SECTION (Collapsible) ---
+                if (showChart) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = RigourSurface),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("چارت $chartSymbol/USDT", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                ChartSymbolSelector(currentSymbol = chartSymbol, onSymbolSelected = { chartSymbol = it })
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            if (isChartLoading) {
+                                Box(modifier = Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(color = RigourCyan)
+                                }
+                            } else if (chartData.isNotEmpty()) {
+                                CandlestickChartCanvas(
+                                    candles = chartData,
+                                    bbUpper = chartData.maxOfOrNull { it.close } ?: 0.0,
+                                    bbMiddle = chartData.map { it.close }.average().takeIf { !it.isNaN() } ?: 0.0,
+                                    bbLower = chartData.minOfOrNull { it.close } ?: 0.0,
+                                    modifier = Modifier.fillMaxWidth().height(220.dp)
+                                )
+                            } else {
+                                Box(modifier = Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
+                                    Text("داده‌ای برای نمایش نیست", color = Color.Gray, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-            }
 
-            if (selectedTab == 0) {
+                // --- SWAP SECTION ---
                 ProfessionalSwapTab(
                     quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken,
-                    onChartRequest = onLoadChartForSymbol
+                    onChartRequest = { symbol -> chartSymbol = symbol }
                 )
-            } else {
-                ChartAndPoolsTab(chartData, isChartLoading, newPools, isPoolsLoading, chartSymbol, onSymbolChange = { chartSymbol = it })
+            }
+        }
+    }
+}
+
+@Composable
+fun ChartSymbolSelector(currentSymbol: String, onSymbolSelected: (String) -> Unit) {
+    var showSelector by remember { mutableStateOf(false) }
+    val symbols = DexTokens.BSC_TOKENS.map { it.symbol }
+
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(RigourBackground)
+            .clickable { showSelector = true }
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(currentSymbol, color = RigourCyan, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = RigourCyan, modifier = Modifier.size(16.dp))
+    }
+
+    if (showSelector) {
+        ModalBottomSheet(onDismissRequest = { showSelector = false }, containerColor = RigourSurface) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("انتخاب ارز برای چارت", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
+                LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
+                    items(symbols) { sym ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().clickable { onSymbolSelected(sym); showSelector = false }.padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(sym, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("/ USDT", color = Color.Gray, fontSize = 13.sp)
+                        }
+                    }
+                }
             }
         }
     }
@@ -153,8 +228,7 @@ fun ProfessionalSwapTab(
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        // --- بالای صفحه: دکمه تنظیمات ---
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
@@ -166,9 +240,8 @@ fun ProfessionalSwapTab(
                 Icon(Icons.Default.Settings, contentDescription = "Settings", tint = RigourCyan, modifier = Modifier.size(18.dp))
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
 
-        // --- SELL BOX ---
+        // SELL BOX
         Card(colors = CardDefaults.cardColors(containerColor = RigourSurface), shape = RoundedCornerShape(16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -199,6 +272,7 @@ fun ProfessionalSwapTab(
             }
         }
 
+        // SWAP ICON
         Box(
             modifier = Modifier.offset(y = (-12).dp).align(Alignment.CenterHorizontally).size(40.dp).clip(RoundedCornerShape(50)).background(RigourSurface).clickable {
                 val temp = sellToken; sellToken = buyToken; buyToken = temp
@@ -206,7 +280,7 @@ fun ProfessionalSwapTab(
             contentAlignment = Alignment.Center
         ) { Text("↓", color = RigourCyan, fontSize = 20.sp, fontWeight = FontWeight.Bold) }
 
-        // --- BUY BOX ---
+        // BUY BOX
         Card(colors = CardDefaults.cardColors(containerColor = RigourSurface), shape = RoundedCornerShape(16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -231,7 +305,6 @@ fun ProfessionalSwapTab(
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = RigourCyan, modifier = Modifier.size(20.dp))
                     }
                 }
-                // نمایش قیمت دلاری
                 if (quote != null && quote.price.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -372,7 +445,7 @@ fun TokenSelectorSheet(
                     Text("توکنی با این آدرس پیدا نشد.", color = Color.Red, modifier = Modifier.padding(16.dp), fontSize = 13.sp)
                 }
             } else {
-                LazyColumn {
+                LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
                     items(filteredTokens) { token ->
                         Row(
                             modifier = Modifier.fillMaxWidth().clickable { onSelect(token) }.padding(vertical = 12.dp),
@@ -389,108 +462,6 @@ fun TokenSelectorSheet(
                             Box(modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(RigourBackground).padding(horizontal = 8.dp, vertical = 4.dp)) {
                                 Text(networkName(token.chainId), color = RigourCyan.copy(alpha = 0.8f), fontSize = 10.sp)
                             }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ChartAndPoolsTab(
-    chartData: List<Candle>,
-    isChartLoading: Boolean,
-    newPools: List<DexPool>,
-    isPoolsLoading: Boolean,
-    chartSymbol: String,
-    onSymbolChange: (String) -> Unit
-) {
-    var showSymbolSelector by remember { mutableStateOf(false) }
-    val popularSymbols = DexTokens.BSC_TOKENS.map { it.symbol }
-
-    LazyColumn(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("چارت $chartSymbol/USDT", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Row(
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(RigourSurface).clickable { showSymbolSelector = true }.padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(chartSymbol, color = RigourCyan, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = RigourCyan, modifier = Modifier.size(16.dp))
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Card(colors = CardDefaults.cardColors(containerColor = RigourSurface), shape = RoundedCornerShape(12.dp)) {
-                if (isChartLoading) {
-                    Box(modifier = Modifier.fillMaxWidth().height(250.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = RigourCyan) }
-                } else if (chartData.isNotEmpty()) {
-                    CandlestickChartCanvas(
-                        candles = chartData,
-                        bbUpper = chartData.maxOfOrNull { it.close } ?: 0.0,
-                        bbMiddle = chartData.map { it.close }.average().takeIf { !it.isNaN() } ?: 0.0,
-                        bbLower = chartData.minOfOrNull { it.close } ?: 0.0,
-                        modifier = Modifier.fillMaxWidth().height(250.dp).padding(8.dp)
-                    )
-                } else {
-                    Box(modifier = Modifier.fillMaxWidth().height(250.dp), contentAlignment = Alignment.Center) { Text("داده‌ای برای نمایش نیست", color = Color.Gray) }
-                }
-            }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("توکن‌های پرطرفدار", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        if (isPoolsLoading) {
-            item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = RigourCyan) } }
-        } else {
-            items(newPools) { pool ->
-                Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = RigourSurface), shape = RoundedCornerShape(12.dp)) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(50)).background(RigourBackground), contentAlignment = Alignment.Center) {
-                                    Text(pool.symbol.take(1), color = RigourCyan, fontWeight = FontWeight.Bold)
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column {
-                                    Text(pool.symbol, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                                    Text(pool.name, color = Color.Gray, fontSize = 11.sp, maxLines = 1)
-                                }
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("$" + "%.6f".format(pool.priceUsd), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                val changeColor = if (pool.priceChange24h >= 0) Color(0xFF10B981) else Color(0xFFEF4444)
-                                Text(
-                                    (if (pool.priceChange24h >= 0) "+" else "") + "%.2f".format(pool.priceChange24h) + "%",
-                                    color = changeColor, fontSize = 11.sp, fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (showSymbolSelector) {
-        ModalBottomSheet(onDismissRequest = { showSymbolSelector = false }, containerColor = RigourSurface) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("انتخاب ارز برای چارت", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-                LazyColumn {
-                    items(popularSymbols) { sym ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth().clickable { onSymbolChange(sym); showSymbolSelector = false }.padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(sym, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("/ USDT", color = Color.Gray, fontSize = 13.sp)
                         }
                     }
                 }
