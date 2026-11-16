@@ -483,6 +483,21 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     val isWalletCreated: StateFlow<Boolean> = walletManager.isWalletCreated
     val walletBalance: StateFlow<String> = walletManager.walletBalance
 
+    val swapResult = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+
+    fun executeSwap(quote: com.example.data.model.DexQuote) {
+        viewModelScope.launch {
+            swapResult.value = "در حال ارسال تراکنش..."
+            val txHash = walletManager.signAndSendTransaction(
+                to = quote.to,
+                data = quote.data,
+                value = quote.value,
+                gasLimit = if (quote.gas.isEmpty()) quote.estimatedGas else quote.gas
+            )
+            swapResult.value = if (txHash != null) "موفق! هش: $txHash" else "خطا در ارسال تراکنش"
+        }
+    }
+
     fun createWallet() {
         viewModelScope.launch {
             val address = walletManager.createNewWallet()

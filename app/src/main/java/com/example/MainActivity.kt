@@ -493,6 +493,7 @@ fun RigourApp(
                             walletAddress = viewModel.walletConnectedAddress.collectAsStateWithLifecycle().value,
                             onConnectWallet = { viewModel.createWallet() },
                             walletBalance = viewModel.walletBalance.collectAsStateWithLifecycle().value,
+                                onExecuteSwap = { quote -> viewModel.executeSwap(quote) },
                         )
                     }
                     is Screen.Markets -> {

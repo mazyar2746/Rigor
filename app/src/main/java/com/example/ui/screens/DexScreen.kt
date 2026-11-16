@@ -73,7 +73,8 @@ fun DexScreen(
     walletAddress: String? = null,
     onConnectWallet: () -> Unit = {},
     walletBalance: String = "0.0",
-    onRefreshBalance: () -> Unit = {}
+    onRefreshBalance: () -> Unit = {},
+    onExecuteSwap: (com.example.data.model.DexQuote) -> Unit = {}
 ) {
     var showChart by remember { mutableStateOf(true) }
     var chartSymbol by remember { mutableStateOf("BNB") }
@@ -215,7 +216,8 @@ fun ProfessionalSwapTab(
     walletAddress: String? = null,
     onConnectWallet: () -> Unit = {},
     walletBalance: String = "0.0",
-    onRefreshBalance: () -> Unit = {}
+    onRefreshBalance: () -> Unit = {},
+    onExecuteSwap: (com.example.data.model.DexQuote) -> Unit = {}
 ) {
     val context = LocalContext.current
     var sellAmount by remember { mutableStateOf("0.1") }

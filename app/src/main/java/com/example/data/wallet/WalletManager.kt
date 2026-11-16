@@ -15,6 +15,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.web3j.crypto.Credentials
 import org.web3j.crypto.Keys
+import org.web3j.crypto.RawTransaction
+import org.web3j.crypto.TransactionEncoder
+import org.web3j.utils.Numeric
+import java.math.BigInteger
 import java.util.concurrent.TimeUnit
 
 /**
@@ -135,6 +139,66 @@ class WalletManager(context: Context) {
         }
     }
 
+
+    suspend fun signAndSendTransaction(to: String, data: String, value: String, gasLimit: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val privateKey = prefs.getString("wallet_private_key", null) ?: return@withContext null
+            val credentials = Credentials.create(privateKey)
+            val nonce = getNonce(credentials.address)
+            val gasPrice = getGasPrice()
+            val safeGasLimit = if (gasLimit.isEmpty()) "300000" else gasLimit
+            val safeValue = if (value.isEmpty()) "0" else value
+
+            val rawTransaction = RawTransaction.createTransaction(
+                nonce, gasPrice, BigInteger(safeGasLimit), to, BigInteger(safeValue), data
+            )
+
+            val signedMessage = TransactionEncoder.signMessage(rawTransaction, 56, credentials)
+            val hexValue = Numeric.toHexString(signedMessage)
+            return@withContext sendRawTransaction(hexValue)
+        } catch (e: Exception) {
+            Log.e("WalletManager", "Failed to sign/send tx: ${e.message}")
+            return@withContext null
+        }
+    }
+
+    private suspend fun getNonce(address: String): BigInteger = withContext(Dispatchers.IO) {
+        val url = rpcUrls[56]!!
+        val body = """{"jsonrpc":"2.0","method":"eth_getTransactionCount","params":["$address","latest"],"id":1}"""
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).post(okhttp3.RequestBody.create("application/json".toMediaType(), body)).build()
+        client.newCall(request).execute().use { response ->
+            val json = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+            val hex = json.get("result").asString.removePrefix("0x")
+            return@withContext BigInteger(hex, 16)
+        }
+    }
+
+    private suspend fun getGasPrice(): BigInteger = withContext(Dispatchers.IO) {
+        val url = rpcUrls[56]!!
+        val body = """{"jsonrpc":"2.0","method":"eth_gasPrice","params":[],"id":1}"""
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).post(okhttp3.RequestBody.create("application/json".toMediaType(), body)).build()
+        client.newCall(request).execute().use { response ->
+            val json = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+            val hex = json.get("result").asString.removePrefix("0x")
+            return@withContext BigInteger(hex, 16)
+        }
+    }
+
+    private suspend fun sendRawTransaction(signedTxHex: String): String? = withContext(Dispatchers.IO) {
+        val url = rpcUrls[56]!!
+        val body = """{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["$signedTxHex"],"id":1}"""
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).post(okhttp3.RequestBody.create("application/json".toMediaType(), body)).build()
+        client.newCall(request).execute().use { response ->
+            val json = Gson().fromJson(response.body?.string(), JsonObject::class.java)
+            if (json.has("result")) return@withContext json.get("result").asString
+            Log.e("WalletManager", "RPC Error: ${json.get("error")}")
+            return@withContext null
+        }
+    }
+    
     fun deleteWallet() {
         prefs.edit().clear().apply()
         _walletAddress.value = null
