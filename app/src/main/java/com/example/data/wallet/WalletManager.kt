@@ -107,7 +107,7 @@ class WalletManager(context: Context) {
             val request = Request.Builder()
                 .url(rpcUrl)
                 .post(okhttp3.RequestBody.create(
-                    okhttp3.MediaType.parse("application/json"),
+                    "application/json".toMediaType(),
                     requestBody
                 ))
                 .build()

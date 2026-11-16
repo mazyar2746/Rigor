@@ -432,9 +432,9 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     val dexNewPools: StateFlow<List<DexPool>> = dexRepository.newPools
     val isDexPoolsLoading: StateFlow<Boolean> = dexRepository.isPoolsLoading
 
-    fun getDexQuote(sellTokenAddress: String, buyTokenAddress: String, sellAmount: String, walletAddress: String, sellTokenSymbol: String, chainId: Int = 56) {
+    fun getDexQuote(sellTokenAddress: String, buyTokenAddress: String, sellAmount: String, walletAddress: String, sellTokenSymbol: String, chainId: Int = 56, sellTokenDecimals: Int = 18) {
         viewModelScope.launch {
-            dexRepository.fetchQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress, sellTokenSymbol, chainId)
+            dexRepository.fetchQuote(sellTokenAddress, buyTokenAddress, sellAmount, walletAddress, sellTokenSymbol, chainId, sellTokenDecimals)
         }
     }
 
