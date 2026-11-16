@@ -484,7 +484,7 @@ fun RigourApp(
                             isPoolsLoading = isDexPoolsLoading,
                             lang = currentLanguage,
                             onBack = { viewModel.navigateTo(Screen.Hub) },
-                            onGetQuote = { sellToken, buyToken, amount, wallet, symbol, chainId, decimals -> viewModel.getDexQuote(sellToken, buyToken, amount, wallet, symbol, chainId, decimals) },
+                            onGetQuote = { sellToken, buyToken, amount, wallet, symbol, chainId -> viewModel.getDexQuote(sellToken, buyToken, amount, wallet, symbol, chainId) },
                             onLoadChart = { network, pool -> viewModel.getDexChart(network, pool) },
                             onLoadChartForSymbol = { symbol -> viewModel.getDexChartForSymbol(symbol) },
                             onLookupToken = { address, callback -> viewModel.lookupDexToken(address, callback) },
@@ -493,7 +493,6 @@ fun RigourApp(
                             walletAddress = viewModel.walletConnectedAddress.collectAsStateWithLifecycle().value,
                             onConnectWallet = { viewModel.createWallet() },
                             walletBalance = viewModel.walletBalance.collectAsStateWithLifecycle().value,
-                            onRefreshBalance = { viewModel.refreshWalletBalance() },
                         )
                     }
                     is Screen.Markets -> {
