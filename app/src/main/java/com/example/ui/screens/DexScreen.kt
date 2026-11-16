@@ -232,7 +232,7 @@ fun ProfessionalSwapTab(
     LaunchedEffect(sellAmount, sellToken, buyToken) {
         val amount = sellAmount.toDoubleOrNull() ?: 0.0
         if (amount > 0 && sameNetwork) {
-            onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet, sellToken.symbol, sellToken.chainId, sellToken.decimals)
+            onGetQuote(sellToken.address, buyToken.address, sellAmount, walletAddress ?: dummyWallet, sellToken.symbol, sellToken.chainId, sellToken.decimals)
         } else {
             onClearState()
         }
@@ -248,6 +248,37 @@ fun ProfessionalSwapTab(
             Spacer(modifier = Modifier.width(4.dp))
             IconButton(onClick = { showSlippageDialog = true }, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Settings, contentDescription = "Settings", tint = RigourCyan, modifier = Modifier.size(18.dp))
+            }
+        }
+
+        // WALLET SECTION
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            colors = CardDefaults.cardColors(containerColor = RigourSurface),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (walletAddress == null) {
+                    Button(
+                        onClick = onConnectWallet,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = RigourCyan),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("اتصال / ساخت کیف پول", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                } else {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column {
+                            Text("کیف پول متصل", color = RigourCyan, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("${walletAddress.take(6)}...${walletAddress.takeLast(4)}", color = Color.White, fontSize = 14.sp)
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("موجودی BNB", color = Color.Gray, fontSize = 12.sp)
+                            Text(walletBalance, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
             }
         }
 
@@ -336,9 +367,9 @@ fun ProfessionalSwapTab(
                 onClick = {
                 if (walletAddress == null) {
                     onConnectWallet()
-                    android.widget.Toast.makeText(context, "کیف پول با موفقیت متصل شد!", android.widget.Toast.LENGTH_SHORT).show()
+                    // Connected successfully
                 } else {
-                    android.widget.Toast.makeText(context, "کیف پول قبلاً متصل است: ${walletAddress.take(10)}...", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, "در حال آماده‌سازی تراکنش سواپ...", android.widget.Toast.LENGTH_SHORT).show()
                 }
             },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -348,8 +379,8 @@ fun ProfessionalSwapTab(
             ) { Text(
                     text = when {
                         isLoading -> "در حال دریافت قیمت..."
-                        walletAddress == null -> "اتصال کیف پول"
-                        else -> "سواپ (${walletAddress.take(6)}...${walletAddress.takeLast(4)})"
+                        walletAddress == null -> "ابتدا کیف پول را متصل کنید"
+                        else -> "تایید سواپ"
                     },
                     color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp
                 ) }
