@@ -64,7 +64,7 @@ fun DexScreen(
     isPoolsLoading: Boolean,
     lang: Language,
     onBack: () -> Unit,
-    onGetQuote: (String, String, String, String, String, Int) -> Unit,
+    onGetQuote: (String, String, String, String, String, Int, Int) -> Unit,
     onLoadChart: (String, String) -> Unit,
     onLoadChartForSymbol: (String) -> Unit,
     onLoadPools: (String) -> Unit,
@@ -205,7 +205,7 @@ fun ProfessionalSwapTab(
     isLoading: Boolean,
     errorMessage: String?,
     lang: Language,
-    onGetQuote: (String, String, String, String, String, Int) -> Unit,
+    onGetQuote: (String, String, String, String, String, Int, Int) -> Unit,
     onClearState: () -> Unit,
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
     onChartRequest: (String) -> Unit,
@@ -227,7 +227,7 @@ fun ProfessionalSwapTab(
     LaunchedEffect(sellAmount, sellToken, buyToken) {
         val amount = sellAmount.toDoubleOrNull() ?: 0.0
         if (amount > 0 && sameNetwork) {
-            onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet, sellToken.symbol, sellToken.chainId)
+            onGetQuote(sellToken.address, buyToken.address, sellAmount, dummyWallet, sellToken.symbol, sellToken.chainId, sellToken.decimals)
         } else {
             onClearState()
         }

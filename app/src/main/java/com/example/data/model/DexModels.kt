@@ -6,7 +6,8 @@ data class DexToken(
     val address: String,
     val priceUsd: Double,
     val imageUrl: String? = null,
-    val chainId: Int = 56
+    val chainId: Int = 56,
+    val decimals: Int = 18
 )
 
 data class DexTokenInfo(
