@@ -49,10 +49,25 @@ class DexRemoteDataSource {
                 if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
                 val json = gson.fromJson(body, JsonObject::class.java)
-                if (json.has("error")) return@withContext null
+                if (json.has("error")) {
+                    Log.w("DexRemote", "0x Error: ${json.get("error")}")
+                    return@withContext null
+                }
+                
+                // Check if liquidity is available
+                if (json.has("liquidityAvailable") && !json.get("liquidityAvailable").asBoolean) {
+                    Log.w("DexRemote", "No liquidity available for this pair")
+                    return@withContext null
+                }
+                
+                val buyAmount = json.get("buyAmount")?.asString ?: ""
+                if (buyAmount.isEmpty() || buyAmount == "0") {
+                    Log.w("DexRemote", "buyAmount is empty or zero")
+                    return@withContext null
+                }
 
                 return@withContext DexQuote(
-                    buyAmount = json.get("buyAmount")?.asString ?: "",
+                    buyAmount = buyAmount,
                     sellAmount = json.get("sellAmount")?.asString ?: "",
                     price = json.get("price")?.asString ?: "",
                     guaranteedPrice = json.get("guaranteedPrice")?.asString ?: "",
