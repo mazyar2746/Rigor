@@ -24,6 +24,14 @@ class DexRemoteDataSource {
     private val gson = Gson()
     private val baseUrl = "https://rigor-v339.h-nasiri3247.workers.dev/api/dex"
 
+    private fun sanitizeAddress(address: String): String {
+        val lower = address.lowercase().trim()
+        if (lower == "bnb" || lower == "eth" || lower == "matic" || lower == "avax" || lower.isEmpty() || lower == "native") {
+            return "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+        return address
+    }
+
     // --- 1. Get Swap Quote (0x API - Single Chain) ---
     suspend fun getQuote(
         sellTokenAddress: String,
@@ -37,8 +45,8 @@ class DexRemoteDataSource {
         try {
             val decimals = TokenDecimals.get(sellTokenSymbol)
             val url = "$baseUrl/quote?chainId=$chainId" +
-                    "&sellToken=$sellTokenAddress" +
-                    "&buyToken=$buyTokenAddress" +
+                    "&sellToken=${sanitizeAddress(sellTokenAddress)}" +
+                    "&buyToken=${sanitizeAddress(buyTokenAddress)}" +
                     "&sellAmount=" + try { java.math.BigDecimal(sellAmount).multiply(java.math.BigDecimal.TEN.pow(decimals)).toBigInteger().toString() } catch (e: Exception) { "0" } +
                     "&taker=$walletAddress" +
                     "&swapFeeRecipient=0x736CC22F2b19adcAE6Ef4e5e13eab6BbF35B1Aab" +
@@ -46,10 +54,16 @@ class DexRemoteDataSource {
 
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return@withContext null
+                if (!response.isSuccessful) {
+                    Log.e("DexRemote", "getQuote failed: HTTP ${response.code} - ${response.body?.string()}")
+                    return@withContext null
+                }
                 val body = response.body?.string() ?: return@withContext null
                 val json = gson.fromJson(body, JsonObject::class.java)
-                if (json.has("error")) return@withContext null
+                if (json.has("error")) {
+                    Log.e("DexRemote", "getQuote error: ${json.get("error")}")
+                    return@withContext null
+                }
 
                 return@withContext DexQuote(
                     buyAmount = json.get("buyAmount")?.asString ?: "",
