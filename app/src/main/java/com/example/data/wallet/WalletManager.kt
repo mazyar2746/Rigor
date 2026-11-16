@@ -153,7 +153,7 @@ class WalletManager(context: Context) {
                 nonce, gasPrice, BigInteger(safeGasLimit), to, BigInteger(safeValue), data
             )
 
-            val signedMessage = TransactionEncoder.signMessage(rawTransaction, 56, credentials)
+            val signedMessage = TransactionEncoder.signMessage(rawTransaction, 56L, credentials)
             val hexValue = Numeric.toHexString(signedMessage)
             return@withContext sendRawTransaction(hexValue)
         } catch (e: Exception) {
