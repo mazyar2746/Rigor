@@ -70,7 +70,8 @@ class WalletManager(context: Context) {
         try {
             val ecKeyPair = Keys.createEcKeyPair()
             val credentials = Credentials.create(ecKeyPair)
-            val address = "0x" + credentials.address
+            val rawAddress = credentials.address.removePrefix("0x").removePrefix("0X")
+            val address = "0x$rawAddress"
 
             // تبدیل کلید خصوصی به هگز با پر کردن صفرهای ابتدایی (جهت امنیت بیشتر)
             val privateKeyHex = java.lang.String.format("%064x", ecKeyPair.privateKey)
