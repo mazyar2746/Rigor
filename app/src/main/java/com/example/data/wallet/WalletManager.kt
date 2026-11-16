@@ -19,18 +19,11 @@ import java.util.concurrent.TimeUnit
 
 /**
  * WalletManager - In-App Wallet (Non-Custodial)
- * 
- * این کلاس یه کیف پول داخلی برای اپ می‌سازه که:
- * - کلید خصوصی رو فقط تو گوشی کاربر (SharedPreferences) ذخیره می‌کنه.
- * - هیچ ارتباطی با WalletConnect یا سرویس‌های تحریم‌شده نداره.
- * - برای همه شبکه‌های EVM کار می‌کنه.
  */
 class WalletManager(context: Context) {
-
     private val prefs: SharedPreferences = context.getSharedPreferences(
         "rigor_wallet_prefs", Context.MODE_PRIVATE
     )
-
     private val _walletAddress = MutableStateFlow<String?>(null)
     val walletAddress: StateFlow<String?> = _walletAddress.asStateFlow()
 
@@ -58,10 +51,15 @@ class WalletManager(context: Context) {
     private fun loadExistingWallet() {
         try {
             val existingAddress = prefs.getString("wallet_address", null)
-            if (existingAddress != null) {
+            // بررسی دقیق: آدرس باید با 0x شروع بشه و دقیقا 40 کاراکتر هگز باشه
+            if (existingAddress != null && existingAddress.matches(Regex("^0x[0-9a-fA-F]{40}$"))) {
                 _walletAddress.value = existingAddress
                 _isWalletCreated.value = true
                 Log.d("WalletManager", "Existing wallet loaded: $existingAddress")
+            } else if (existingAddress != null) {
+                // اگر آدرس فیک/خراب بود (مثل 0x0x8f...)، پاکش کن
+                prefs.edit().clear().apply()
+                Log.w("WalletManager", "Invalid/fake wallet address found and cleared: $existingAddress")
             }
         } catch (e: Exception) {
             Log.e("WalletManager", "Failed to load existing wallet: ${e.message}")
@@ -73,15 +71,18 @@ class WalletManager(context: Context) {
             val ecKeyPair = Keys.createEcKeyPair()
             val credentials = Credentials.create(ecKeyPair)
             val address = "0x" + credentials.address
-            
+
+            // تبدیل کلید خصوصی به هگز با پر کردن صفرهای ابتدایی (جهت امنیت بیشتر)
+            val privateKeyHex = java.lang.String.format("%064x", ecKeyPair.privateKey)
+
             prefs.edit()
                 .putString("wallet_address", address)
-                .putString("wallet_private_key", ecKeyPair.privateKey.toString(16))
+                .putString("wallet_private_key", privateKeyHex)
                 .apply()
-            
+
             _walletAddress.value = address
             _isWalletCreated.value = true
-            
+
             Log.d("WalletManager", "New wallet created: $address")
             return@withContext address
         } catch (e: Exception) {
@@ -95,16 +96,16 @@ class WalletManager(context: Context) {
         try {
             val address = _walletAddress.value ?: return@withContext "0.0"
             val rpcUrl = rpcUrls[chainId] ?: rpcUrls[56]!!
-            
+
             val client = OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
                 .build()
-            
+
             val requestBody = """
                 {"jsonrpc":"2.0","method":"eth_getBalance","params":["$address","latest"],"id":1}
             """.trimIndent()
-            
+
             val request = Request.Builder()
                 .url(rpcUrl)
                 .post(okhttp3.RequestBody.create(
@@ -112,15 +113,17 @@ class WalletManager(context: Context) {
                     requestBody
                 ))
                 .build()
-            
+
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext "0.0"
+
                 val body = response.body?.string() ?: return@withContext "0.0"
                 val json = Gson().fromJson(body, JsonObject::class.java)
                 val balanceHex = json.get("result")?.asString ?: "0x0"
                 val balanceWei = balanceHex.removePrefix("0x").toBigInteger(16)
                 val balanceEther = java.math.BigDecimal(balanceWei).divide(java.math.BigDecimal.TEN.pow(18))
                 val formatted = String.format("%.6f", balanceEther)
+
                 _walletBalance.value = formatted
                 Log.d("WalletManager", "Balance for $address on chain $chainId: $formatted")
                 return@withContext formatted
