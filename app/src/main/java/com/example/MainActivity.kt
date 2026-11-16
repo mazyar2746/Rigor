@@ -491,7 +491,9 @@ fun RigourApp(
                             onLoadPools = { network -> viewModel.getDexNewPools(network) },
                             onClearState = { viewModel.clearDexState() },
                             walletAddress = viewModel.walletConnectedAddress.collectAsStateWithLifecycle().value,
-                            onConnectWallet = { viewModel.connectWallet() },
+                            onConnectWallet = { viewModel.createWallet() },
+                            walletBalance = viewModel.walletBalance.collectAsStateWithLifecycle().value,
+                            onRefreshBalance = { viewModel.refreshWalletBalance() },
                         )
                     }
                     is Screen.Markets -> {

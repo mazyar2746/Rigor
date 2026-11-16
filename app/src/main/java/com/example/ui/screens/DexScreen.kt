@@ -71,7 +71,9 @@ fun DexScreen(
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
     onClearState: () -> Unit,
     walletAddress: String? = null,
-    onConnectWallet: () -> Unit = {}
+    onConnectWallet: () -> Unit = {},
+    walletBalance: String = "0.0",
+    onRefreshBalance: () -> Unit = {}
 ) {
     var showChart by remember { mutableStateOf(true) }
     var chartSymbol by remember { mutableStateOf("BNB") }
@@ -153,7 +155,8 @@ fun DexScreen(
                 ProfessionalSwapTab(
                     quote, isLoading, errorMessage, lang, onGetQuote, onClearState, onLookupToken,
                     onChartRequest = { symbol -> chartSymbol = symbol },
-                    walletAddress = walletAddress, onConnectWallet = onConnectWallet
+                    walletAddress = walletAddress, onConnectWallet = onConnectWallet,
+                    walletBalance = walletBalance
                 )
             }
         }
@@ -210,7 +213,9 @@ fun ProfessionalSwapTab(
     onLookupToken: (String, (DexTokenInfo?) -> Unit) -> Unit,
     onChartRequest: (String) -> Unit,
     walletAddress: String? = null,
-    onConnectWallet: () -> Unit = {}
+    onConnectWallet: () -> Unit = {},
+    walletBalance: String = "0.0",
+    onRefreshBalance: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var sellAmount by remember { mutableStateOf("0.1") }
