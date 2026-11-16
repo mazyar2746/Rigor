@@ -31,7 +31,8 @@ class DexRemoteDataSource {
         sellAmount: String,
         walletAddress: String,
         sellTokenSymbol: String,
-        chainId: Int = 56
+        chainId: Int = 56,
+        sellTokenDecimals: Int = 18
     ): DexQuote? = withContext(Dispatchers.IO) {
         try {
             val decimals = TokenDecimals.get(sellTokenSymbol)
