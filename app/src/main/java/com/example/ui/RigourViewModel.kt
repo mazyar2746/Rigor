@@ -12,6 +12,8 @@ import com.example.data.model.TechnicalAnalysisResult
 import com.example.data.model.UserSubscription
 import com.example.data.repository.CryptoRepository
 import com.example.data.repository.ForexRepository
+import com.example.data.repository.IranStockAnalysisService
+import com.example.data.repository.FullAnalysisResult
 import com.example.data.repository.DexRepository
 import com.example.data.wallet.WalletManager
 import com.example.data.wallet.WalletSimulator
@@ -58,6 +60,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     private val database = RigourDatabase.getInstance(application)
     private val cryptoRepository = CryptoRepository(database.favoritesDao(), database.coinCacheDao(), context = application)
     private val forexRepository = ForexRepository()
+    private val iranStockAnalysisService = IranStockAnalysisService()
     private val dexRepository = DexRepository()
     private val walletManager = WalletManager(application)
     private val subscriptionRepository = SubscriptionRepository(database.subscriptionDao())
@@ -188,6 +191,44 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
                 }
             }
             _signals.value = list
+            _isSignalsLoading.value = false
+        }
+    }
+
+
+    private val _forexSignals = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.data.model.ForexAnalysisResult>>(emptyList())
+    val forexSignals: kotlinx.coroutines.flow.StateFlow<List<com.example.data.model.ForexAnalysisResult>> = _forexSignals
+
+    private val _iranStockSignals = kotlinx.coroutines.flow.MutableStateFlow<List<FullAnalysisResult>>(emptyList())
+    val iranStockSignals: kotlinx.coroutines.flow.StateFlow<List<FullAnalysisResult>> = _iranStockSignals
+
+    fun computeForexSignals() {
+        viewModelScope.launch {
+            _isSignalsLoading.value = true
+            val list = mutableListOf<com.example.data.model.ForexAnalysisResult>()
+            for (pair in com.example.data.model.ForexPairs.ALL.take(25)) {
+                try {
+                    val analysis = forexRepository.analyzePair(pair.symbol, "1h")
+                    if (analysis != null) list.add(analysis)
+                } catch (e: Exception) { }
+            }
+            _forexSignals.value = list
+            _isSignalsLoading.value = false
+        }
+    }
+
+    fun computeIranStockSignals() {
+        viewModelScope.launch {
+            _isSignalsLoading.value = true
+            val list = mutableListOf<FullAnalysisResult>()
+            val defaultStocks = listOf("فولاد", "خودرو", "شپنا", "وبملت", "فملی", "بوعلی", "شتران", "وپاسار", "کگل", "همراه")
+            for (stock in defaultStocks) {
+                try {
+                    val analysis = iranStockAnalysisService.analyzeStock(stock)
+                    if (analysis != null) list.add(analysis)
+                } catch (e: Exception) { }
+            }
+            _iranStockSignals.value = list
             _isSignalsLoading.value = false
         }
     }

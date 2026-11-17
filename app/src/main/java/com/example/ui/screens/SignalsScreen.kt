@@ -87,6 +87,8 @@ enum class SignalFilter {
 @Composable
 fun SignalsScreen(
     signals: List<CoinSignalData>,
+    forexSignals: List<com.example.data.model.ForexAnalysisResult> = emptyList(),
+    iranStockSignals: List<FullAnalysisResult> = emptyList(),
     isLoading: Boolean,
     subscription: UserSubscription,
     lang: Language,
@@ -94,10 +96,11 @@ fun SignalsScreen(
     onSelectCoin: (CryptoCoin) -> Unit,
     onNavigateToSubscription: () -> Unit
 ) {
+    var selectedTab by remember { mutableStateOf(0) }
     var selectedFilter by remember { mutableStateOf(SignalFilter.ALL) }
 
-    val filteredList = remember(signals, selectedFilter) {
-        when (selectedFilter) {
+    val filteredList = remember(signals, selectedFilter, subscription) {
+        var list = when (selectedFilter) {
             SignalFilter.ALL -> signals
             SignalFilter.BUY_ONLY -> signals.filter {
                 it.analysis.overallSignal == SignalType.BUY || it.analysis.overallSignal == SignalType.STRONG_BUY
@@ -109,6 +112,10 @@ fun SignalsScreen(
                 it.isProSignal || it.analysis.confidencePercent >= 75
             }
         }
+        if (!subscription.isActive) {
+            list = list.filter { it.analysis.confidencePercent < 85 }
+        }
+        list
     }
 
     LazyColumn(
@@ -119,6 +126,15 @@ fun SignalsScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        item {
+            androidx.compose.material3.TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
+                androidx.compose.material3.Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text(if (lang == Language.PERSIAN) "کریپتو" else "Crypto", fontWeight = FontWeight.Bold) })
+                androidx.compose.material3.Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text(if (lang == Language.PERSIAN) "فارکس" else "Forex", fontWeight = FontWeight.Bold) })
+                androidx.compose.material3.Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text(if (lang == Language.PERSIAN) "بورس" else "Stock", fontWeight = FontWeight.Bold) })
+            }
+        }
+
+        if (selectedTab == 0) {
         // 1. Header Banner & Pro Accuracy Explanation Card
         item {
             SignalsExplorationBanner(
