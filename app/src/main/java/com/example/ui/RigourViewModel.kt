@@ -192,41 +192,6 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-
-    private val _forexSignals = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.data.model.ForexAnalysisResult>>(emptyList())
-    val forexSignals: kotlinx.coroutines.flow.StateFlow<List<com.example.data.model.ForexAnalysisResult>> = _forexSignals
-
-    private val _iranStockSignals = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.data.model.FullAnalysisResult>>(emptyList())
-    val iranStockSignals: kotlinx.coroutines.flow.StateFlow<List<com.example.data.model.FullAnalysisResult>> = _iranStockSignals
-
-    fun computeForexSignals() {
-        viewModelScope.launch {
-            _isSignalsLoading.value = true
-            val list = mutableListOf<com.example.data.model.ForexAnalysisResult>()
-            for (pair in com.example.data.model.ForexPairs.ALL.take(25)) {
-                try { list.add(forexRepository.analyzePair(pair)) } catch (e: Exception) { }
-            }
-            _forexSignals.value = list
-            _isSignalsLoading.value = false
-        }
-    }
-
-    fun computeIranStockSignals() {
-        viewModelScope.launch {
-            _isSignalsLoading.value = true
-            val list = mutableListOf<com.example.data.model.FullAnalysisResult>()
-            val defaultStocks = listOf("فولاد", "خودرو", "شپنا", "وبملت", "فملی", "بوعلی", "شتران", "وپاسار", "کگل", "همراه")
-            for (stock in defaultStocks) {
-                try {
-                    val analysis = iranStockAnalysisService.analyzeStock(stock)
-                    if (analysis != null) list.add(analysis)
-                } catch (e: Exception) { }
-            }
-            _iranStockSignals.value = list
-            _isSignalsLoading.value = false
-        }
-    }
-
     fun navigateTo(screen: Screen) {
         _currentScreen.value = screen
         if (screen is Screen.Signals && _signals.value.isEmpty()) {

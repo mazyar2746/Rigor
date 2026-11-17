@@ -87,8 +87,6 @@ enum class SignalFilter {
 @Composable
 fun SignalsScreen(
     signals: List<CoinSignalData>,
-    forexSignals: List<com.example.data.model.ForexAnalysisResult> = emptyList(),
-    iranStockSignals: List<com.example.data.model.FullAnalysisResult> = emptyList(),
     isLoading: Boolean,
     subscription: UserSubscription,
     lang: Language,
@@ -96,7 +94,6 @@ fun SignalsScreen(
     onSelectCoin: (CryptoCoin) -> Unit,
     onNavigateToSubscription: () -> Unit
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
     var selectedFilter by remember { mutableStateOf(SignalFilter.ALL) }
 
     val filteredList = remember(signals, selectedFilter) {
@@ -122,13 +119,7 @@ fun SignalsScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            androidx.compose.material3.TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
-                androidx.compose.material3.Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text(if (lang == Language.PERSIAN) "کریپتو" else "Crypto", fontWeight = FontWeight.Bold) })
-                androidx.compose.material3.Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text(if (lang == Language.PERSIAN) "فارکس" else "Forex", fontWeight = FontWeight.Bold) })
-                androidx.compose.material3.Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text(if (lang == Language.PERSIAN) "بورس" else "Stock", fontWeight = FontWeight.Bold) })
-            }
-        }
+        // 1. Header Banner & Pro Accuracy Explanation Card
         item {
             SignalsExplorationBanner(
                 isPro = subscription.isActive,
@@ -137,7 +128,7 @@ fun SignalsScreen(
             )
         }
 
-        if (selectedTab == 0) {
+        // 2. Filter Chips & Refresh Action
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -819,34 +810,7 @@ fun IndicatorPill(label: String, color: Color) {
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold
         )
-        } else if (selectedTab == 1) {
-            items(forexSignals.filter { subscription.isActive || it.confidencePercent >= 90 }) { signal ->
-                androidx.compose.material3.Card(modifier = Modifier.fillMaxWidth(), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = RigourSurface)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(signal.symbol, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            val sigColor = if (signal.overallSignal.name.contains("BUY")) RigourBullish else if (signal.overallSignal.name.contains("SELL")) RigourBearish else Color.Gray
-                            Text(signal.overallSignal.name, color = sigColor, fontWeight = FontWeight.Bold)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("اطمینان: ${signal.confidencePercent}%", color = RigourCyan, fontSize = 12.sp)
-                    }
-                }
-            }
-        } else if (selectedTab == 2) {
-            items(iranStockSignals.filter { subscription.isActive || it.confidencePercent >= 90 }) { signal ->
-                androidx.compose.material3.Card(modifier = Modifier.fillMaxWidth(), colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = RigourSurface)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(signal.symbol, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            val sigColor = if (signal.overallSignal.name.contains("BUY")) RigourBullish else if (signal.overallSignal.name.contains("SELL")) RigourBearish else Color.Gray
-                            Text(signal.overallSignal.name, color = sigColor, fontWeight = FontWeight.Bold)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("اطمینان: ${signal.confidencePercent}%", color = RigourCyan, fontSize = 12.sp)
-                    }
-                }
-            }
-        }
     }
 }
+
+
