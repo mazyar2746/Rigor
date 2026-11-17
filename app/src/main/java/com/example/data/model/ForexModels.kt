@@ -128,12 +128,6 @@ object ForexPairs {
         ForexPair("USD/TRY", "USD / TRY", "USD", "TRY", "Exotic"),
         ForexPair("EUR/TRY", "EUR / TRY", "EUR", "TRY", "Exotic"),
         ForexPair("USD/SEK", "USD / SEK", "USD", "SEK", "Exotic"),
-        ForexPair("XAU/USD", "Gold / USD", "XAU", "USD", "Metal"),
-        ForexPair("XAG/USD", "Silver / USD", "XAG", "USD", "Metal"),
-        ForexPair("XPT/USD", "Platinum / USD", "XPT", "USD", "Metal"),
-        ForexPair("XPD/USD", "Palladium / USD", "XPD", "USD", "Metal"),
-        ForexPair("WTI/USD", "Oil (WTI) / USD", "WTI", "USD", "Commodity"),
-        ForexPair("BRENT/USD", "Oil (Brent) / USD", "BRENT", "USD", "Commodity"),
         ForexPair("USD/CNH", "USD / CNH", "USD", "CNH", "Exotic"),
         ForexPair("USD/HKD", "USD / HKD", "USD", "HKD", "Exotic"),
         ForexPair("USD/SGD", "USD / SGD", "USD", "SGD", "Exotic"),
@@ -150,11 +144,21 @@ object ForexPairs {
         ForexPair("CHF/JPY", "CHF / JPY", "CHF", "JPY", "Cross")
     )
 
+
+        val COMMODITIES: List<ForexPair> = listOf(
+            ForexPair("XAU/USD", "Gold / USD", "XAU", "USD", "Metal"),
+            ForexPair("XAG/USD", "Silver / USD", "XAG", "USD", "Metal"),
+            ForexPair("XPT/USD", "Platinum / USD", "XPT", "USD", "Metal"),
+            ForexPair("XPD/USD", "Palladium / USD", "XPD", "USD", "Metal"),
+            ForexPair("WTI/USD", "Oil (WTI) / USD", "WTI", "USD", "Commodity"),
+            ForexPair("BRENT/USD", "Oil (Brent) / USD", "BRENT", "USD", "Commodity")
+        )
+
     /** All pairs in order: pages of 10. */
-    val ALL_PAGES: List<List<ForexPair>> = listOf(MAJORS, CROSSES, EXOTICS)
+    val ALL_PAGES: List<List<ForexPair>> = listOf(MAJORS, CROSSES, EXOTICS, COMMODITIES)
 
     /** Flat list of all pairs. */
-    val ALL: List<ForexPair> = MAJORS + CROSSES + EXOTICS
+    val ALL: List<ForexPair> = MAJORS + CROSSES + EXOTICS + COMMODITIES
 
     /** Find a pair by symbol. */
     fun findBySymbol(symbol: String): ForexPair? =
