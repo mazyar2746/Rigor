@@ -127,7 +127,27 @@ object ForexPairs {
         ForexPair("USD/ZAR", "USD / ZAR", "USD", "ZAR", "Exotic"),
         ForexPair("USD/TRY", "USD / TRY", "USD", "TRY", "Exotic"),
         ForexPair("EUR/TRY", "EUR / TRY", "EUR", "TRY", "Exotic"),
-        ForexPair("USD/SEK", "USD / SEK", "USD", "SEK", "Exotic")
+        ForexPair("USD/SEK", "USD / SEK", "USD", "SEK", "Exotic"),
+        ForexPair("XAU/USD", "Gold / USD", "XAU", "USD", "Metal"),
+        ForexPair("XAG/USD", "Silver / USD", "XAG", "USD", "Metal"),
+        ForexPair("XPT/USD", "Platinum / USD", "XPT", "USD", "Metal"),
+        ForexPair("XPD/USD", "Palladium / USD", "XPD", "USD", "Metal"),
+        ForexPair("WTI/USD", "Oil (WTI) / USD", "WTI", "USD", "Commodity"),
+        ForexPair("BRENT/USD", "Oil (Brent) / USD", "BRENT", "USD", "Commodity"),
+        ForexPair("USD/CNH", "USD / CNH", "USD", "CNH", "Exotic"),
+        ForexPair("USD/HKD", "USD / HKD", "USD", "HKD", "Exotic"),
+        ForexPair("USD/SGD", "USD / SGD", "USD", "SGD", "Exotic"),
+        ForexPair("USD/NOK", "USD / NOK", "USD", "NOK", "Exotic"),
+        ForexPair("USD/DKK", "USD / DKK", "USD", "DKK", "Exotic"),
+        ForexPair("USD/PLN", "USD / PLN", "USD", "PLN", "Exotic"),
+        ForexPair("EUR/NOK", "EUR / NOK", "EUR", "NOK", "Exotic"),
+        ForexPair("EUR/PLN", "EUR / PLN", "EUR", "PLN", "Exotic"),
+        ForexPair("EUR/HUF", "EUR / HUF", "EUR", "HUF", "Exotic"),
+        ForexPair("GBP/NZD", "GBP / NZD", "GBP", "NZD", "Cross"),
+        ForexPair("GBP/CAD", "GBP / CAD", "GBP", "CAD", "Cross"),
+        ForexPair("AUD/NZD", "AUD / NZD", "AUD", "NZD", "Cross"),
+        ForexPair("CAD/CHF", "CAD / CHF", "CAD", "CHF", "Cross"),
+        ForexPair("CHF/JPY", "CHF / JPY", "CHF", "JPY", "Cross")
     )
 
     /** All pairs in order: pages of 10. */
