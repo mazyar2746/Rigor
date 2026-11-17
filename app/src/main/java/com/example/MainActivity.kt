@@ -517,8 +517,14 @@ fun RigourApp(
                     }
 
                     is Screen.Signals -> {
+                        LaunchedEffect(Unit) {
+                            if (viewModel.forexSignals.value.isEmpty()) viewModel.computeForexSignals()
+                            if (viewModel.iranStockSignals.value.isEmpty()) viewModel.computeIranStockSignals()
+                        }
                         SignalsScreen(
                             signals = signals,
+                            forexSignals = viewModel.forexSignals.collectAsStateWithLifecycle().value,
+                            iranStockSignals = viewModel.iranStockSignals.collectAsStateWithLifecycle().value,
                             isLoading = isSignalsLoading,
                             subscription = subscription,
                             lang = currentLanguage,
