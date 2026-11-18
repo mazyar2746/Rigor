@@ -109,7 +109,7 @@ fun SignalsScreen(
                 it.analysis.overallSignal == SignalType.SELL || it.analysis.overallSignal == SignalType.STRONG_SELL
             }
             SignalFilter.HIGH_CONFIDENCE -> signals.filter {
-                it.isProSignal || it.analysis.confidencePercent >= 75
+                it.isProSignal || it.analysis.confidencePercent >= 85
             }
         }
         if (!subscription.isActive) {

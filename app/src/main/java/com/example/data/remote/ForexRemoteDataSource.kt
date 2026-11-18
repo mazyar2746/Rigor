@@ -165,18 +165,22 @@ class ForexRemoteDataSource(
                 val json = gson.fromJson(body, JsonObject::class.java)
                 val rates = json.getAsJsonObject("rates") ?: return@withContext result
 
-                fun getRate(base: String, quote: String): Double {
-                    if (base == "USD") return rates.get(quote)?.asDouble ?: 0.0
-                    if (quote == "USD") return 1.0 / (rates.get(base)?.asDouble ?: 1.0)
-                    val b = rates.get(base)?.asDouble ?: 1.0
-                    val q = rates.get(quote)?.asDouble ?: 1.0
+                fun getRate(base: String, quote: String): Double? {
+                    if (base == "USD") return rates.get(quote)?.asDouble
+                    if (quote == "USD") {
+                        val b = rates.get(base)?.asDouble ?: return null
+                        return 1.0 / b
+                    }
+                    val b = rates.get(base)?.asDouble ?: return null
+                    val q = rates.get(quote)?.asDouble ?: return null
                     return q / b
                 }
 
                 for (pair in ForexPairs.ALL) {
+                    if (pair.category == "Metal" || pair.category == "Commodity") continue
                     val parts = pair.symbol.split("/")
                     if (parts.size == 2) {
-                        val price = getRate(parts[0], parts[1])
+                        val price = getRate(parts[0], parts[1]) ?: 0.0
                         if (price > 0.0) {
                             val key = pair.symbol.uppercase()
                             result[key] = ForexQuote(key, price, 0.0, 0.0, price, price)
