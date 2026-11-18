@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.CoinSignalData
+import com.example.data.repository.FullAnalysisResult
 import com.example.data.model.CryptoCoin
 import com.example.data.model.MarketDataProvenance
 import com.example.data.model.SignalType
@@ -112,9 +113,7 @@ fun SignalsScreen(
                 it.isProSignal || it.analysis.confidencePercent >= 85
             }
         }
-        if (!subscription.isActive) {
-            list = list.filter { it.analysis.confidencePercent < 85 }
-        }
+        if (!subscription.isActive) { list = list.filter { it.analysis.confidencePercent < 85 } }
         list
     }
 
@@ -126,6 +125,7 @@ fun SignalsScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+
         item {
             androidx.compose.material3.TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
                 androidx.compose.material3.Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text(if (lang == Language.PERSIAN) "کریپتو" else "Crypto", fontWeight = FontWeight.Bold) })
