@@ -38,7 +38,7 @@ class ForexRemoteDataSource(
     private val candleTtlMs = 60_000L
     
     private var lastRequestTime = 0L
-    private val minRequestIntervalMs = 8_000L // 8 seconds throttle
+    private val minRequestIntervalMs = 15_000L // 8 seconds throttle
 
     private suspend fun throttle() {
         val now = System.currentTimeMillis()

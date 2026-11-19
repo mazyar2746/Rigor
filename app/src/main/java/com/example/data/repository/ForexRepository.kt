@@ -24,6 +24,10 @@ import kotlinx.coroutines.withContext
  *  - analyses: Map<symbol, ForexAnalysisResult>
  *  - isLoading / errorMessage
  */
+
+    private val analysisCache = mutableMapOf<String, Pair<com.example.data.model.ForexAnalysisResult, Long>>()
+    private val CACHE_TTL = 300_000L // 5 minutes
+
 class ForexRepository(
     private val remote: ForexRemoteDataSource = ForexRemoteDataSource()
 ) {
@@ -100,6 +104,11 @@ class ForexRepository(
         interval: String = "1h",
         outputSize: Int = 120
     ): ForexAnalysisResult? = withContext(Dispatchers.IO) {
+        val cached = analysisCache[symbol]
+        if (cached != null && System.currentTimeMillis() - cached.second < CACHE_TTL) {
+            return@withContext cached.first
+        }
+
         _isLoading.value = true
         _errorMessage.value = null
         try {
@@ -154,6 +163,7 @@ class ForexRepository(
 
             _analyses.value = _analyses.value + (symbol.uppercase() to analysis)
             _lastUpdated.value = System.currentTimeMillis()
+            analysisCache[symbol] = Pair(analysis, System.currentTimeMillis())
             return@withContext analysis
         } catch (t: Throwable) {
             _errorMessage.value = "خطا در تحلیل $symbol: ${t.message}"
