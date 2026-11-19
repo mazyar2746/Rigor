@@ -808,6 +808,7 @@ fun SignalItemCard(
                     }
                 }
             }
+            }
         }
     }
 }

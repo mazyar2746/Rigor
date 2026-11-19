@@ -87,25 +87,28 @@ class ForexRemoteDataSource(
         val result = mutableMapOf<String, ForexQuote>()
         if (symbols.isEmpty()) return@withContext result
         try {
-            throttle()
-            val joined = symbols.joinToString(",") { it.uppercase() }
-            val url = "${RigorConfig.TWELVE_DATA_BASE_URL}quote?symbol=$joined&apikey=$apiKey"
-            val request = Request.Builder().url(url).build()
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return@withContext result
-                val body = response.body?.string() ?: return@withContext result
-                val json = gson.fromJson(body, JsonObject::class.java)
-                if (symbols.size == 1) {
-                    val sym = symbols.first().uppercase()
-                    val price = json.get("close")?.asString?.toDoubleOrNull() ?: return@withContext result
-                    result[sym] = ForexQuote(sym, price, json.get("change")?.asString?.toDoubleOrNull() ?: 0.0, json.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0, json.get("high")?.asString?.toDoubleOrNull() ?: price, json.get("low")?.asString?.toDoubleOrNull() ?: price)
-                } else {
-                    for (sym in symbols) {
-                        val key = sym.uppercase()
-                        val obj = json.getAsJsonObject(key) ?: continue
-                        if (obj.has("status") && obj.get("status").asString == "error") continue
-                        val price = obj.get("close")?.asString?.toDoubleOrNull() ?: continue
-                        result[key] = ForexQuote(key, price, obj.get("change")?.asString?.toDoubleOrNull() ?: 0.0, obj.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0, obj.get("high")?.asString?.toDoubleOrNull() ?: price, obj.get("low")?.asString?.toDoubleOrNull() ?: price)
+            val chunks = symbols.chunked(8)
+            for (chunk in chunks) {
+                throttle()
+                val joined = chunk.joinToString(",") { it.uppercase() }
+                val url = "${RigorConfig.TWELVE_DATA_BASE_URL}quote?symbol=$joined&apikey=$apiKey"
+                val request = Request.Builder().url(url).build()
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@use
+                    val body = response.body?.string() ?: return@use
+                    val json = gson.fromJson(body, JsonObject::class.java)
+                    if (chunk.size == 1) {
+                        val sym = chunk.first().uppercase()
+                        val price = json.get("close")?.asString?.toDoubleOrNull() ?: return@use
+                        result[sym] = ForexQuote(sym, price, json.get("change")?.asString?.toDoubleOrNull() ?: 0.0, json.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0, json.get("high")?.asString?.toDoubleOrNull() ?: price, json.get("low")?.asString?.toDoubleOrNull() ?: price)
+                    } else {
+                        for (sym in chunk) {
+                            val key = sym.uppercase()
+                            val obj = json.getAsJsonObject(key) ?: continue
+                            if (obj.has("status") && obj.get("status").asString == "error") continue
+                            val price = obj.get("close")?.asString?.toDoubleOrNull() ?: continue
+                            result[key] = ForexQuote(key, price, obj.get("change")?.asString?.toDoubleOrNull() ?: 0.0, obj.get("percent_change")?.asString?.toDoubleOrNull() ?: 0.0, obj.get("high")?.asString?.toDoubleOrNull() ?: price, obj.get("low")?.asString?.toDoubleOrNull() ?: price)
+                        }
                     }
                 }
             }
