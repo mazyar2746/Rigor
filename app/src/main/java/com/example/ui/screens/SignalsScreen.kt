@@ -264,6 +264,7 @@ fun SignalsScreen(
                 )
             }
         }
+        }
     }
 }
 
