@@ -198,8 +198,35 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
 
     val forexSignals = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.data.model.ForexAnalysisResult>>(emptyList())
     val iranStockSignals = kotlinx.coroutines.flow.MutableStateFlow<List<FullAnalysisResult>>(emptyList())
-    fun computeForexSignals() { viewModelScope.launch { _isSignalsLoading.value = true; val l = mutableListOf<com.example.data.model.ForexAnalysisResult>(); for (p in com.example.data.model.ForexPairs.ALL.take(25)) { try { forexRepository.analyzePair(p.symbol, "1h")?.let { l.add(it) } } catch (e: Exception) {} }; forexSignals.value = l; _isSignalsLoading.value = false } }
-    fun computeIranStockSignals() { viewModelScope.launch { _isSignalsLoading.value = true; val l = mutableListOf<FullAnalysisResult>(); val s = listOf("فولاد", "خودرو", "شپنا", "وبملت", "فملی", "بوعلی", "شتران", "وپاسار", "کگل", "همراه"); for (x in s) { try { iranStockAnalysisService.analyzeStock(x)?.let { l.add(it) } } catch (e: Exception) {} }; iranStockSignals.value = l; _isSignalsLoading.value = false } }
+    fun computeForexSignals() {
+        viewModelScope.launch {
+            _isSignalsLoading.value = true
+            val l = mutableListOf<com.example.data.model.ForexAnalysisResult>()
+            for (p in com.example.data.model.ForexPairs.ALL.take(5)) {
+                try {
+                    forexRepository.analyzePair(p.symbol, "1h")?.let { l.add(it) }
+                    kotlinx.coroutines.delay(2500)
+                } catch (e: Exception) {}
+            }
+            forexSignals.value = l
+            _isSignalsLoading.value = false
+        }
+    }
+    fun computeIranStockSignals() {
+        viewModelScope.launch {
+            _isSignalsLoading.value = true
+            val l = mutableListOf<FullAnalysisResult>()
+            val s = listOf("فولاد", "خودرو", "شپنا", "وبملت", "فملی")
+            for (x in s) {
+                try {
+                    iranStockAnalysisService.analyzeStock(x)?.let { l.add(it) }
+                    kotlinx.coroutines.delay(2500)
+                } catch (e: Exception) {}
+            }
+            iranStockSignals.value = l
+            _isSignalsLoading.value = false
+        }
+    }
     fun navigateTo(screen: Screen) {
         _currentScreen.value = screen
         if (screen is Screen.Signals && _signals.value.isEmpty()) {
