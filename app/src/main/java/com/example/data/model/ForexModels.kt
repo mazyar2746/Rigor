@@ -145,13 +145,7 @@ object ForexPairs {
     )
 
 
-        val COMMODITIES: List<ForexPair> = listOf(
-            ForexPair("XAU/USD", "Gold / USD", "XAU", "USD", "Metal"),
-            ForexPair("XAG/USD", "Silver / USD", "XAG", "USD", "Metal"),
-            ForexPair("XPT/USD", "Platinum / USD", "XPT", "USD", "Metal"),
-            ForexPair("XPD/USD", "Palladium / USD", "XPD", "USD", "Metal"),
-            ForexPair("WTI/USD", "Oil (WTI) / USD", "WTI", "USD", "Commodity"),
-            ForexPair("BRENT/USD", "Oil (Brent) / USD", "BRENT", "USD", "Commodity")
+        val COMMODITIES: List<ForexPair> = emptyList()
         )
 
     /** All pairs in order: pages of 10. */

@@ -56,7 +56,7 @@ fun ForexScreen(
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
 
-    val pageTitles = if (lang == Language.PERSIAN) listOf("جفت‌ارزهای اصلی", "کراس‌ها", "اگزوتیک", "کامودیتی‌ها") else listOf("Major Pairs", "Crosses", "Exotics", "Commodities")
+    val pageTitles = if (lang == Language.PERSIAN) listOf("جفت‌ارزهای اصلی", "کراس‌ها", "اگزوتیک") else listOf("Major Pairs", "Crosses", "Exotics")
 
     Column(
         modifier = Modifier
