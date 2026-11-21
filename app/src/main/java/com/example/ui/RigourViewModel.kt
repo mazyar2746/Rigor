@@ -199,6 +199,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     val forexSignals = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.data.model.ForexAnalysisResult>>(emptyList())
     val iranStockSignals = kotlinx.coroutines.flow.MutableStateFlow<List<FullAnalysisResult>>(emptyList())
     fun computeForexSignals() {
+        if (forexSignals.value.isNotEmpty()) return
         viewModelScope.launch {
             _isSignalsLoading.value = true
             val l = mutableListOf<com.example.data.model.ForexAnalysisResult>()
@@ -206,13 +207,16 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
                 try {
                     forexRepository.analyzePair(p.symbol, "1h")?.let { l.add(it) }
                     kotlinx.coroutines.delay(2500)
-                } catch (e: Exception) {}
+                } catch (e: Exception) {
+                    android.util.Log.e("RigourVM", "Forex API Error: ${e.message}", e)
+                }
             }
             forexSignals.value = l
             _isSignalsLoading.value = false
         }
     }
     fun computeIranStockSignals() {
+        if (iranStockSignals.value.isNotEmpty()) return
         viewModelScope.launch {
             _isSignalsLoading.value = true
             val l = mutableListOf<FullAnalysisResult>()
@@ -221,7 +225,9 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
                 try {
                     iranStockAnalysisService.analyzeStock(x)?.let { l.add(it) }
                     kotlinx.coroutines.delay(2500)
-                } catch (e: Exception) {}
+                } catch (e: Exception) {
+                    android.util.Log.e("RigourVM", "Stock API Error: ${e.message}", e)
+                }
             }
             iranStockSignals.value = l
             _isSignalsLoading.value = false

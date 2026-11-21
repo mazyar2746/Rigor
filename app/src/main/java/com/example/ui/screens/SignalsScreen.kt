@@ -267,6 +267,66 @@ fun SignalsScreen(
             }
         }
         }
+
+        if (selectedTab == 1) {
+            if (forexSignals.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text(if (lang == Language.PERSIAN) "سیگنالی برای نمایش وجود ندارد" else "No signals to display", color = Color.Gray)
+                    }
+                }
+            } else {
+                val filteredForex = remember(forexSignals, subscription) {
+                    if (!subscription.isActive) forexSignals.filter { it.confidencePercent < 85 }
+                    else forexSignals
+                }
+                items(filteredForex, key = { it.symbol }) { signal ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = RigourSurface)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(signal.symbol, fontWeight = FontWeight.Bold, color = Color.White)
+                                Text("${signal.confidencePercent}%", color = RigourCyan)
+                            }
+                            Text("Signal: ${signal.overallSignal.name}", color = Color.Gray)
+                            Text("Price: ${signal.currentPrice}", color = Color.Gray)
+                        }
+                    }
+                }
+            }
+        }
+
+        if (selectedTab == 2) {
+            if (iranStockSignals.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text(if (lang == Language.PERSIAN) "سیگنالی برای نمایش وجود ندارد" else "No signals to display", color = Color.Gray)
+                    }
+                }
+            } else {
+                val filteredStock = remember(iranStockSignals, subscription) {
+                    if (!subscription.isActive) iranStockSignals.filter { it.technical.confidencePercent < 85 }
+                    else iranStockSignals
+                }
+                items(filteredStock) { signal ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = RigourSurface)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(if (lang == Language.PERSIAN) "سیگنال بورس" else "Stock Signal", fontWeight = FontWeight.Bold, color = Color.White)
+                                Text("${signal.technical.confidencePercent}%", color = RigourCyan)
+                            }
+                            Text("Signal: ${signal.technical.overallSignal.name}", color = Color.Gray)
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
 
