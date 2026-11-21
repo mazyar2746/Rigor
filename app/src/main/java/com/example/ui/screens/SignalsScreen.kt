@@ -94,6 +94,8 @@ fun SignalsScreen(
     subscription: UserSubscription,
     lang: Language,
     onRefresh: () -> Unit,
+    onRefreshForex: () -> Unit = {},
+    onRefreshStock: () -> Unit = {},
     onSelectCoin: (CryptoCoin) -> Unit,
     onNavigateToSubscription: () -> Unit
 ) {
@@ -129,8 +131,8 @@ fun SignalsScreen(
         item {
             androidx.compose.material3.TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
                 androidx.compose.material3.Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text(if (lang == Language.PERSIAN) "کریپتو" else "Crypto", fontWeight = FontWeight.Bold) })
-                androidx.compose.material3.Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text(if (lang == Language.PERSIAN) "فارکس" else "Forex", fontWeight = FontWeight.Bold) })
-                androidx.compose.material3.Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text(if (lang == Language.PERSIAN) "بورس" else "Stock", fontWeight = FontWeight.Bold) })
+                androidx.compose.material3.Tab(selected = selectedTab == 1, onClick = { selectedTab = 1; onRefreshForex() }, text = { Text(if (lang == Language.PERSIAN) "فارکس" else "Forex", fontWeight = FontWeight.Bold) })
+                androidx.compose.material3.Tab(selected = selectedTab == 2, onClick = { selectedTab = 2; onRefreshStock() }, text = { Text(if (lang == Language.PERSIAN) "بورس" else "Stock", fontWeight = FontWeight.Bold) })
             }
         }
 
