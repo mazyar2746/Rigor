@@ -146,7 +146,6 @@ object ForexPairs {
 
 
         val COMMODITIES: List<ForexPair> = emptyList()
-        )
 
     /** All pairs in order: pages of 10. */
     val ALL_PAGES: List<List<ForexPair>> = listOf(MAJORS, CROSSES, EXOTICS, COMMODITIES)
