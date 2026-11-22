@@ -175,23 +175,29 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     fun computeSignals() {
         viewModelScope.launch {
             _isSignalsLoading.value = true
-            val currentCoins = coins.value.take(30)
-            val list = mutableListOf<CoinSignalData>()
-            for (coin in currentCoins) {
-                try {
-                    val analysis = cryptoRepository.getTechnicalAnalysis(coin, "1h")
-                    // CRITICAL: Real trading signals must NEVER be generated from synthetic or unavailable candles!
-                    if (analysis.provenance == MarketDataProvenance.LIVE_EXCHANGE || analysis.provenance == MarketDataProvenance.CACHED_EXCHANGE) {
-                        list.add(CoinSignalData(coin, analysis))
-                    } else {
-                        android.util.Log.d("RigourVM", "Skipping ${coin.symbol} from signals feed due to synthetic/unavailable provenance (${analysis.provenance})")
+            try {
+                val currentCoins = coins.value.take(15)
+                val list = mutableListOf<CoinSignalData>()
+                for (coin in currentCoins) {
+                    try {
+                        val analysis = kotlinx.coroutines.withTimeoutOrNull(5000L) {
+                            cryptoRepository.getTechnicalAnalysis(coin, "1h")
+                        }
+                        if (analysis != null && (analysis.provenance == MarketDataProvenance.LIVE_EXCHANGE || analysis.provenance == MarketDataProvenance.CACHED_EXCHANGE)) {
+                            list.add(CoinSignalData(coin, analysis))
+                        } else if (analysis != null) {
+                            android.util.Log.d("RigourVM", "Skipping ${coin.symbol} due to synthetic provenance")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("RigourVM", "Failed to compute signals for ${coin.symbol}: ${e.message}")
                     }
-                } catch (e: Exception) {
-                    android.util.Log.w("RigourVM", "Failed to compute signals for ${coin.symbol}: ${e.message}")
                 }
+                _signals.value = list
+            } catch (e: Exception) {
+                android.util.Log.e("RigourVM", "Global error in computeSignals", e)
+            } finally {
+                _isSignalsLoading.value = false
             }
-            _signals.value = list
-            _isSignalsLoading.value = false
         }
     }
 
