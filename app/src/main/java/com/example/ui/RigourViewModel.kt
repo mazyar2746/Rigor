@@ -179,7 +179,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
             val list = mutableListOf<CoinSignalData>()
             for (coin in currentCoins) {
                 try {
-                    val analysis = kotlinx.coroutines.withTimeoutOrNull(6000L) { cryptoRepository.getTechnicalAnalysis(coin, "1h") } ?: continue
+                    val analysis = cryptoRepository.getTechnicalAnalysis(coin, "1h")
                     // CRITICAL: Real trading signals must NEVER be generated from synthetic or unavailable candles!
                     if (analysis.provenance == MarketDataProvenance.LIVE_EXCHANGE || analysis.provenance == MarketDataProvenance.CACHED_EXCHANGE) {
                         list.add(CoinSignalData(coin, analysis))
@@ -202,35 +202,41 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
         if (forexSignals.value.isNotEmpty()) return
         viewModelScope.launch {
             _isSignalsLoading.value = true
-            val l = mutableListOf<com.example.data.model.ForexAnalysisResult>()
-            for (p in com.example.data.model.ForexPairs.ALL.take(5)) {
-                try {
-                    forexRepository.analyzePair(p.symbol, "1h")?.let { l.add(it) }
-                    kotlinx.coroutines.delay(2500)
-                } catch (e: Exception) {
-                    android.util.Log.e("RigourVM", "Forex API Error: ${e.message}", e)
+            try {
+                val l = mutableListOf<com.example.data.model.ForexAnalysisResult>()
+                for (p in com.example.data.model.ForexPairs.ALL.take(5)) {
+                    try {
+                        forexRepository.analyzePair(p.symbol, "1h")?.let { l.add(it) }
+                        kotlinx.coroutines.delay(2500)
+                    } catch (e: Exception) {
+                        android.util.Log.e("RigourVM", "Forex API Error: ${e.message}", e)
+                    }
                 }
+                forexSignals.value = l
+            } finally {
+                _isSignalsLoading.value = false
             }
-            forexSignals.value = l
-            _isSignalsLoading.value = false
         }
     }
     fun computeIranStockSignals() {
         if (iranStockSignals.value.isNotEmpty()) return
         viewModelScope.launch {
             _isSignalsLoading.value = true
-            val l = mutableListOf<FullAnalysisResult>()
-            val s = listOf("فولاد", "خودرو", "شپنا", "وبملت", "فملی")
-            for (x in s) {
-                try {
-                    iranStockAnalysisService.analyzeStock(x)?.let { l.add(it) }
-                    kotlinx.coroutines.delay(2500)
-                } catch (e: Exception) {
-                    android.util.Log.e("RigourVM", "Stock API Error: ${e.message}", e)
+            try {
+                val l = mutableListOf<FullAnalysisResult>()
+                val s = listOf("فولاد", "خودرو", "شپنا", "وبملت", "فملی")
+                for (x in s) {
+                    try {
+                        iranStockAnalysisService.analyzeStock(x)?.let { l.add(it) }
+                        kotlinx.coroutines.delay(2500)
+                    } catch (e: Exception) {
+                        android.util.Log.e("RigourVM", "Stock API Error: ${e.message}", e)
+                    }
                 }
+                iranStockSignals.value = l
+            } finally {
+                _isSignalsLoading.value = false
             }
-            iranStockSignals.value = l
-            _isSignalsLoading.value = false
         }
     }
     fun navigateTo(screen: Screen) {
