@@ -18,6 +18,7 @@ import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 data class FullAnalysisResult(
+    val symbol: String = "",
     val technical: TechnicalAnalysisResult,
     val fundamental: FundamentalData?,
     val smartMoneyText: String? = null,
@@ -87,7 +88,7 @@ class IranStockAnalysisService(private val context: Context) {
                         eps = fundamentalData?.estimatedEPS
                     )
 
-                    FullAnalysisResult(technicalResult, fundamentalData, null, stockData.lastUpdated)
+                    FullAnalysisResult(symbol = stockName, technicalResult, fundamentalData, null, stockData.lastUpdated)
                 }
             }
         } catch (e: Exception) {

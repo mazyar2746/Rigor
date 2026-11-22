@@ -276,8 +276,7 @@ fun SignalsScreen(
                     }
                 }
             } else {
-                val filteredForex = if (!subscription.isActive) forexSignals.filter { it.confidencePercent < 85 } else forexSignals
-                items(filteredForex, key = { it.symbol }) { signal ->
+                items(forexSignals, key = { it.symbol }) { signal ->
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         colors = CardDefaults.cardColors(containerColor = RigourSurface)
@@ -285,10 +284,21 @@ fun SignalsScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(signal.symbol, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text("${signal.confidencePercent}%", color = RigourCyan)
+                                if (!subscription.isActive && signal.confidencePercent >= 85) {
+                                    Text("PRO 🔒", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold)
+                                } else {
+                                    Text("${signal.confidencePercent}%", color = RigourCyan)
+                                }
                             }
-                            Text("Signal: ${signal.overallSignal.name}", color = Color.Gray)
-                            Text("Price: ${signal.currentPrice}", color = Color.Gray)
+                            if (!subscription.isActive && signal.confidencePercent >= 85) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(onClick = onNavigateToSubscription, colors = ButtonDefaults.buttonColors(containerColor = RigourCyan), modifier = Modifier.fillMaxWidth()) {
+                                    Text("ارتقا به پرو برای مشاهده", color = Color.Black)
+                                }
+                            } else {
+                                Text("Signal: ${signal.overallSignal.name}", color = Color.Gray)
+                                Text("Price: ${String.format("%.4f", signal.currentPrice)}", color = Color.Gray)
+                            }
                         }
                     }
                 }
@@ -303,18 +313,28 @@ fun SignalsScreen(
                     }
                 }
             } else {
-                val filteredStock = if (!subscription.isActive) iranStockSignals.filter { it.technical.confidencePercent < 85 } else iranStockSignals
-                items(filteredStock) { signal ->
+                items(iranStockSignals, key = { it.symbol }) { signal ->
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         colors = CardDefaults.cardColors(containerColor = RigourSurface)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (lang == Language.PERSIAN) "سیگنال بورس" else "Stock Signal", fontWeight = FontWeight.Bold, color = Color.White)
-                                Text("${signal.technical.confidencePercent}%", color = RigourCyan)
+                                Text(if (signal.symbol.isNotEmpty()) signal.symbol else "سهم", fontWeight = FontWeight.Bold, color = Color.White)
+                                if (!subscription.isActive && signal.technical.confidencePercent >= 85) {
+                                    Text("PRO 🔒", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold)
+                                } else {
+                                    Text("${signal.technical.confidencePercent}%", color = RigourCyan)
+                                }
                             }
-                            Text("Signal: ${signal.technical.overallSignal.name}", color = Color.Gray)
+                            if (!subscription.isActive && signal.technical.confidencePercent >= 85) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(onClick = onNavigateToSubscription, colors = ButtonDefaults.buttonColors(containerColor = RigourCyan), modifier = Modifier.fillMaxWidth()) {
+                                    Text("ارتقا به پرو برای مشاهده", color = Color.Black)
+                                }
+                            } else {
+                                Text("Signal: ${signal.technical.overallSignal.name}", color = Color.Gray)
+                            }
                         }
                     }
                 }

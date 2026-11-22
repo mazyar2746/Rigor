@@ -179,7 +179,7 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
             val list = mutableListOf<CoinSignalData>()
             for (coin in currentCoins) {
                 try {
-                    val analysis = cryptoRepository.getTechnicalAnalysis(coin, "1h")
+                    val analysis = kotlinx.coroutines.withTimeoutOrNull(6000L) { cryptoRepository.getTechnicalAnalysis(coin, "1h") } ?: continue
                     // CRITICAL: Real trading signals must NEVER be generated from synthetic or unavailable candles!
                     if (analysis.provenance == MarketDataProvenance.LIVE_EXCHANGE || analysis.provenance == MarketDataProvenance.CACHED_EXCHANGE) {
                         list.add(CoinSignalData(coin, analysis))
