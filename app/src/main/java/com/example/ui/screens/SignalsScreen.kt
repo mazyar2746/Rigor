@@ -276,10 +276,7 @@ fun SignalsScreen(
                     }
                 }
             } else {
-                val filteredForex = remember(forexSignals, subscription) {
-                    if (!subscription.isActive) forexSignals.filter { it.confidencePercent < 85 }
-                    else forexSignals
-                }
+                val filteredForex = if (!subscription.isActive) forexSignals.filter { it.confidencePercent < 85 } else forexSignals
                 items(filteredForex, key = { it.symbol }) { signal ->
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -306,10 +303,7 @@ fun SignalsScreen(
                     }
                 }
             } else {
-                val filteredStock = remember(iranStockSignals, subscription) {
-                    if (!subscription.isActive) iranStockSignals.filter { it.technical.confidencePercent < 85 }
-                    else iranStockSignals
-                }
+                val filteredStock = if (!subscription.isActive) iranStockSignals.filter { it.technical.confidencePercent < 85 } else iranStockSignals
                 items(filteredStock) { signal ->
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
