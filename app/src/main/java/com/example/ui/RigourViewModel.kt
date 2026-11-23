@@ -176,25 +176,19 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             _isSignalsLoading.value = true
             try {
-                val currentCoins = coins.value.take(15)
+                val currentCoins = coins.value.take(30)
                 val list = mutableListOf<CoinSignalData>()
                 for (coin in currentCoins) {
                     try {
-                        val analysis = kotlinx.coroutines.withTimeoutOrNull(5000L) {
-                            cryptoRepository.getTechnicalAnalysis(coin, "1h")
-                        }
-                        if (analysis != null && (analysis.provenance == MarketDataProvenance.LIVE_EXCHANGE || analysis.provenance == MarketDataProvenance.CACHED_EXCHANGE)) {
+                        val analysis = cryptoRepository.getTechnicalAnalysis(coin, "1h")
+                        if (analysis.provenance == MarketDataProvenance.LIVE_EXCHANGE || analysis.provenance == MarketDataProvenance.CACHED_EXCHANGE) {
                             list.add(CoinSignalData(coin, analysis))
-                        } else if (analysis != null) {
-                            android.util.Log.d("RigourVM", "Skipping ${coin.symbol} due to synthetic provenance")
                         }
                     } catch (e: Exception) {
-                        android.util.Log.w("RigourVM", "Failed to compute signals for ${coin.symbol}: ${e.message}")
+                        android.util.Log.w("RigourVM", "Failed: ${coin.symbol}")
                     }
                 }
                 _signals.value = list
-            } catch (e: Exception) {
-                android.util.Log.e("RigourVM", "Global error in computeSignals", e)
             } finally {
                 _isSignalsLoading.value = false
             }

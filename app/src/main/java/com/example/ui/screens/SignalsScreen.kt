@@ -128,15 +128,9 @@ fun SignalsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        item {
-            androidx.compose.material3.TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
-                androidx.compose.material3.Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text(if (lang == Language.PERSIAN) "کریپتو" else "Crypto", fontWeight = FontWeight.Bold) })
-                androidx.compose.material3.Tab(selected = selectedTab == 1, onClick = { selectedTab = 1; onRefreshForex() }, text = { Text(if (lang == Language.PERSIAN) "فارکس" else "Forex", fontWeight = FontWeight.Bold) })
-                androidx.compose.material3.Tab(selected = selectedTab == 2, onClick = { selectedTab = 2; onRefreshStock() }, text = { Text(if (lang == Language.PERSIAN) "بورس" else "Stock", fontWeight = FontWeight.Bold) })
-            }
-        }
+        
 
-        if (selectedTab == 0) {
+        // Crypto Signals Section
         // 1. Header Banner & Pro Accuracy Explanation Card
         item {
             SignalsExplorationBanner(
@@ -268,58 +262,9 @@ fun SignalsScreen(
         }
         }
 
-        if (selectedTab == 1) {
-            if (forexSignals.isEmpty()) {
-                item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { Text(if (lang == Language.PERSIAN) "سیگنالی برای نمایش وجود ندارد" else "No signals to display", color = Color.Gray) } }
-            } else {
-                val filteredForex = forexSignals.filter {
-                    when (selectedFilter) {
-                        SignalFilter.ALL -> true
-                        SignalFilter.BUY_ONLY -> it.overallSignal == SignalType.BUY || it.overallSignal == SignalType.STRONG_BUY
-                        SignalFilter.SELL_ONLY -> it.overallSignal == SignalType.SELL || it.overallSignal == SignalType.STRONG_SELL
-                        SignalFilter.HIGH_CONFIDENCE -> it.confidencePercent >= 85
-                    }
-                }
-                items(filteredForex, key = { it.symbol }) { signal ->
-                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = RigourSurface)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(signal.symbol, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text("${signal.confidencePercent}%", color = RigourCyan)
-                            }
-                            Text("Signal: ${signal.overallSignal.name}", color = Color.Gray)
-                            Text("Price: ${String.format("%.4f", signal.currentPrice)}", color = Color.Gray)
-                        }
-                    }
-                }
-            }
-        }
+        
 
-        if (selectedTab == 2) {
-            if (iranStockSignals.isEmpty()) {
-                item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { Text(if (lang == Language.PERSIAN) "سیگنالی برای نمایش وجود ندارد" else "No signals to display", color = Color.Gray) } }
-            } else {
-                val filteredStock = iranStockSignals.filter {
-                    when (selectedFilter) {
-                        SignalFilter.ALL -> true
-                        SignalFilter.BUY_ONLY -> it.technical.overallSignal == SignalType.BUY || it.technical.overallSignal == SignalType.STRONG_BUY
-                        SignalFilter.SELL_ONLY -> it.technical.overallSignal == SignalType.SELL || it.technical.overallSignal == SignalType.STRONG_SELL
-                        SignalFilter.HIGH_CONFIDENCE -> it.technical.confidencePercent >= 85
-                    }
-                }
-                items(filteredStock, key = { it.symbol }) { signal ->
-                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = RigourSurface)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(if (signal.symbol.isNotEmpty()) signal.symbol else "سهم", fontWeight = FontWeight.Bold, color = Color.White)
-                                Text("${signal.technical.confidencePercent}%", color = RigourCyan)
-                            }
-                            Text("Signal: ${signal.technical.overallSignal.name}", color = Color.Gray)
-                        }
-                    }
-                }
-            }
-        }
+        
 
     }
 }
