@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 object MarketDataCacheManager {
     private const val TAG = "CacheManager"
-    private const val CACHE_EXPIRY_MS = 12 * 60 * 60 * 1000L // ۱۲ ساعت
+    private const val CACHE_EXPIRY_MS = 1 * 60 * 60 * 1000L // ۱ ساعت (برای آپدیت سریع‌تر)
     
     private val gson = Gson()
     private val fileMutex = Mutex()
@@ -54,7 +54,7 @@ object MarketDataCacheManager {
         val now = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tehran"))
         if (now.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) return false
         val time = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
-        return time in (9 * 60)..(12 * 60 + 30)
+        return time in (9 * 60)..(13 * 60) // از ۹ صبح تا ۱ بعدازظهر
     }
 
     suspend fun getStockData(symbol: String): StockMarketData? = withContext(Dispatchers.IO) {
