@@ -270,35 +270,17 @@ fun SignalsScreen(
 
         if (selectedTab == 1) {
             if (forexSignals.isEmpty()) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text(if (lang == Language.PERSIAN) "سیگنالی برای نمایش وجود ندارد" else "No signals to display", color = Color.Gray)
-                    }
-                }
+                item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { Text(if (lang == Language.PERSIAN) "سیگنالی برای نمایش وجود ندارد" else "No signals to display", color = Color.Gray) } }
             } else {
                 items(forexSignals, key = { it.symbol }) { signal ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = RigourSurface)
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = RigourSurface)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(signal.symbol, fontWeight = FontWeight.Bold, color = Color.White)
-                                if (!subscription.isActive && signal.confidencePercent >= 85) {
-                                    Text("PRO 🔒", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold)
-                                } else {
-                                    Text("${signal.confidencePercent}%", color = RigourCyan)
-                                }
+                                Text("${signal.confidencePercent}%", color = RigourCyan)
                             }
-                            if (!subscription.isActive && signal.confidencePercent >= 85) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = onNavigateToSubscription, colors = ButtonDefaults.buttonColors(containerColor = RigourCyan), modifier = Modifier.fillMaxWidth()) {
-                                    Text("ارتقا به پرو برای مشاهده", color = Color.Black)
-                                }
-                            } else {
-                                Text("Signal: ${signal.overallSignal.name}", color = Color.Gray)
-                                Text("Price: ${String.format("%.4f", signal.currentPrice)}", color = Color.Gray)
-                            }
+                            Text("Signal: ${signal.overallSignal.name}", color = Color.Gray)
+                            Text("Price: ${String.format("%.4f", signal.currentPrice)}", color = Color.Gray)
                         }
                     }
                 }
@@ -307,34 +289,16 @@ fun SignalsScreen(
 
         if (selectedTab == 2) {
             if (iranStockSignals.isEmpty()) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text(if (lang == Language.PERSIAN) "سیگنالی برای نمایش وجود ندارد" else "No signals to display", color = Color.Gray)
-                    }
-                }
+                item { Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { Text(if (lang == Language.PERSIAN) "سیگنالی برای نمایش وجود ندارد" else "No signals to display", color = Color.Gray) } }
             } else {
                 items(iranStockSignals, key = { it.symbol }) { signal ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = RigourSurface)
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = RigourSurface)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(if (signal.symbol.isNotEmpty()) signal.symbol else "سهم", fontWeight = FontWeight.Bold, color = Color.White)
-                                if (!subscription.isActive && signal.technical.confidencePercent >= 85) {
-                                    Text("PRO 🔒", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold)
-                                } else {
-                                    Text("${signal.technical.confidencePercent}%", color = RigourCyan)
-                                }
+                                Text("${signal.technical.confidencePercent}%", color = RigourCyan)
                             }
-                            if (!subscription.isActive && signal.technical.confidencePercent >= 85) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = onNavigateToSubscription, colors = ButtonDefaults.buttonColors(containerColor = RigourCyan), modifier = Modifier.fillMaxWidth()) {
-                                    Text("ارتقا به پرو برای مشاهده", color = Color.Black)
-                                }
-                            } else {
-                                Text("Signal: ${signal.technical.overallSignal.name}", color = Color.Gray)
-                            }
+                            Text("Signal: ${signal.technical.overallSignal.name}", color = Color.Gray)
                         }
                     }
                 }

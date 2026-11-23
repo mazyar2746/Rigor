@@ -205,7 +205,6 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
     val forexSignals = kotlinx.coroutines.flow.MutableStateFlow<List<com.example.data.model.ForexAnalysisResult>>(emptyList())
     val iranStockSignals = kotlinx.coroutines.flow.MutableStateFlow<List<FullAnalysisResult>>(emptyList())
     fun computeForexSignals() {
-        if (forexSignals.value.isNotEmpty()) return
         viewModelScope.launch {
             _isSignalsLoading.value = true
             try {
@@ -225,7 +224,6 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     fun computeIranStockSignals() {
-        if (iranStockSignals.value.isNotEmpty()) return
         viewModelScope.launch {
             _isSignalsLoading.value = true
             try {
