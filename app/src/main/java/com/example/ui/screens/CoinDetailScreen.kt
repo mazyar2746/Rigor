@@ -445,7 +445,30 @@ fun CoinDetailScreen(
 
                 TargetsAndLevelsCard(result = analysisResult, lang = lang)
 
-            } else {
+            }
+            } else if (analysisResult != null) {
+                androidx.compose.material3.Card(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = com.example.ui.theme.RigourSurface)
+                ) {
+                    androidx.compose.foundation.layout.Column(
+                        modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                    ) {
+                        Text("PRO 🔒", color = androidx.compose.ui.graphics.Color(0xFFFFD700), fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 20.sp)
+                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
+                        Text("این سیگنال دارای دقت بالای ۸۵٪ است.", color = androidx.compose.ui.graphics.Color.Gray, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+                        androidx.compose.material3.Button(
+                            onClick = { onNavigateToSubscription() },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = com.example.ui.theme.RigourCyan)
+                        ) {
+                            Text("ارتقا به پرو برای مشاهده", color = androidx.compose.ui.graphics.Color.Black)
+                        }
+                    }
+                }
+            }
+ else {
                 // LOCKED PAYWALL CARD
                 PaywallGateCard(
                     onUpgrade = onNavigateToSubscription,
