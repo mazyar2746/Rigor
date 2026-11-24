@@ -142,7 +142,7 @@ if (isProUser || tech.confidencePercent < 85) {
 
                     if (fund != null) {
             } else {
-                com.example.ui.components.LockedAnalysisCard(onUpgrade = onNavigateToSubscription)
+                LockedAnalysisCard(onUpgrade = onNavigateToSubscription)
             }
                         Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)), shape = RoundedCornerShape(12.dp)) {
                             Column(modifier = Modifier.padding(16.dp)) {
@@ -207,5 +207,33 @@ fun SignalBadge(signal: SignalType, label: String) {
     }
     Box(modifier = Modifier.background(color, RoundedCornerShape(20.dp)).padding(horizontal = 20.dp, vertical = 8.dp)) {
         Text(label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+    }
+}
+
+@Composable
+fun LockedAnalysisCard(onUpgrade: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = RigourSurface),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("PRO 🔒", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "این سیگنال دارای دقت بالای ۸۵٪ است. برای مشاهده تارگت‌ها و تحلیل کامل، ارتقا دهید.",
+                color = Color.Gray, textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onUpgrade,
+                colors = ButtonDefaults.buttonColors(containerColor = RigourCyan)
+            ) {
+                Text("ارتقا به پرو", color = Color.Black)
+            }
+        }
     }
 }

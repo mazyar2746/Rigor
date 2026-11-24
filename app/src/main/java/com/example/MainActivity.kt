@@ -401,9 +401,7 @@ fun RigourApp(
                         IranStockDetailScreen(
                             stockName = screen.stockName,
                             onBack = { viewModel.navigateTo(Screen.IranStockSearch) },
-                            lang = currentLanguage,
-                            isProUser = subscription.isActive,
-                            onNavigateToSubscription = { viewModel.navigateTo(Screen.Subscription) }
+                            lang = currentLanguage
                         )
                     }
 
