@@ -166,12 +166,16 @@ fun ForexDetailScreen(
 
             if (analysis != null) {
                 SignalCard(analysis = analysis)
-                IndicatorsCard(analysis = analysis)
-                // Convert ForexAnalysisResult -> TechnicalAnalysisResult for reuse
-                TargetsAndLevelsCard(
-                    result = analysis.toTechnicalResult(),
-                    lang = lang
-                )
+                if (isProUser || analysis.confidencePercent < 85) {
+                    IndicatorsCard(analysis = analysis)
+                    // Convert ForexAnalysisResult -> TechnicalAnalysisResult for reuse
+                    TargetsAndLevelsCard(
+                        result = analysis.toTechnicalResult(),
+                        lang = lang
+                    )
+                } else {
+                    com.example.ui.components.LockedAnalysisCard(onUpgrade = onNavigateToSubscription)
+                }
             } else if (isLoading) {
                 Box(
                     modifier = Modifier
