@@ -47,13 +47,22 @@ fun IranStockDetailScreen(
     val service = remember { IranStockAnalysisService(context) }
 
     LaunchedEffect(stockName, retryTrigger) {
-        isLoading = true; errorMsg = null
-        val timeoutJob = scope.launch { delay(20000); if (isLoading) { isLoading = false; errorMsg = "زمان دریافت اطلاعات به پایان رسید." } }
-        scope.launch {
-            try {
-                val analysis = service.analyzeStock(stockName)
-                if (analysis == null) errorMsg = "دیتای این نماد در دسترس نیست." else result = analysis
-            } catch (e: Exception) { errorMsg = "خطا: ${e.message}" } finally { isLoading = false; timeoutJob.cancel() }
+        isLoading = true
+        errorMsg = null
+        try {
+            // تایم‌اوت ۱۵ ثانیه‌ای امن برای جلوگیری از گیر کردن لودینگ
+            val analysis = kotlinx.coroutines.withTimeoutOrNull(15000L) {
+                service.analyzeStock(stockName)
+            }
+            if (analysis == null) {
+                errorMsg = "دیتای این نماد در دسترس نیست یا سرور بورس پاسخ نمی‌دهد."
+            } else {
+                result = analysis
+            }
+        } catch (e: Exception) {
+            errorMsg = "خطا: ${e.message}"
+        } finally {
+            isLoading = false
         }
     }
 
