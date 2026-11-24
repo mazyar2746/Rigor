@@ -179,12 +179,14 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             _isSignalsLoading.value = true
             try {
-                val currentCoins = coins.value.take(30)
+                val currentCoins = coins.value.take(15)
                 val deferredList = currentCoins.map { coin ->
                     async(Dispatchers.IO) {
                         try {
-                            val analysis = cryptoRepository.getTechnicalAnalysis(coin, "1h")
-                            if (analysis.provenance == MarketDataProvenance.LIVE_EXCHANGE || analysis.provenance == MarketDataProvenance.CACHED_EXCHANGE) {
+                            val analysis = kotlinx.coroutines.withTimeoutOrNull(5000L) {
+                                cryptoRepository.getTechnicalAnalysis(coin, "1h")
+                            }
+                            if (analysis != null && (analysis.provenance == MarketDataProvenance.LIVE_EXCHANGE || analysis.provenance == MarketDataProvenance.CACHED_EXCHANGE)) {
                                 CoinSignalData(coin, analysis)
                             } else null
                         } catch (e: Exception) {
