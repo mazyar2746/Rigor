@@ -126,13 +126,7 @@ fun SignalsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        item {
-            androidx.compose.material3.TabRow(selectedTabIndex = selectedTab, containerColor = RigourSurface, contentColor = RigourCyan) {
-                androidx.compose.material3.Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text(if (lang == Language.PERSIAN) "کریپتو" else "Crypto", fontWeight = FontWeight.Bold) })
-                androidx.compose.material3.Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text(if (lang == Language.PERSIAN) "فارکس" else "Forex", fontWeight = FontWeight.Bold) })
-                androidx.compose.material3.Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 }, text = { Text(if (lang == Language.PERSIAN) "بورس" else "Stock", fontWeight = FontWeight.Bold) })
-            }
-        }
+        
 
         if (selectedTab == 0) {
         // 1. Header Banner & Pro Accuracy Explanation Card
