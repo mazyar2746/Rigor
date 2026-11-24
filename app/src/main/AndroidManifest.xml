@@ -11,6 +11,7 @@
     </queries>
 
     <application
+        android:largeHeap="true"
         android:name=".RigorApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
