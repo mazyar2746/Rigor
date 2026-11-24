@@ -35,7 +35,9 @@ import java.util.Locale
 fun IranStockDetailScreen(
     stockName: String,
     onBack: () -> Unit,
-    lang: Language = Language.PERSIAN
+    lang: Language = Language.PERSIAN,
+    isProUser: Boolean = false,
+    onNavigateToSubscription: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var result by remember { mutableStateOf<FullAnalysisResult?>(null) }
@@ -122,6 +124,7 @@ fun IranStockDetailScreen(
                         }
                     }
 
+if (isProUser || tech.confidencePercent < 85) {
                     DynamicLevelsCard(currentPrice = tech.currentPrice, r2 = tech.resistance2, r1 = tech.resistance1, pivot = tech.pivotPoint, s1 = tech.support1, s2 = tech.support2)
 
                     Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)), shape = RoundedCornerShape(12.dp)) {
@@ -138,6 +141,9 @@ fun IranStockDetailScreen(
                     }
 
                     if (fund != null) {
+            } else {
+                LockedAnalysisCard(onUpgrade = onNavigateToSubscription)
+            }
                         Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)), shape = RoundedCornerShape(12.dp)) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text("📊 " + StringsDictionary.get("iran_stock_basic_info", lang), color = Color(0xFF00BCD4), fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -201,5 +207,33 @@ fun SignalBadge(signal: SignalType, label: String) {
     }
     Box(modifier = Modifier.background(color, RoundedCornerShape(20.dp)).padding(horizontal = 20.dp, vertical = 8.dp)) {
         Text(label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+    }
+}
+
+@Composable
+fun LockedAnalysisCard(onUpgrade: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = RigourSurface),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("PRO 🔒", color = Color(0xFFFFD700), fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "این سیگنال دارای دقت بالای ۸۵٪ است. برای مشاهده تارگت‌ها و تحلیل کامل، ارتقا دهید.",
+                color = Color.Gray, textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onUpgrade,
+                colors = ButtonDefaults.buttonColors(containerColor = RigourCyan)
+            ) {
+                Text("ارتقا به پرو", color = Color.Black)
+            }
+        }
     }
 }

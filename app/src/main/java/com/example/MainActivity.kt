@@ -401,7 +401,9 @@ fun RigourApp(
                         IranStockDetailScreen(
                             stockName = screen.stockName,
                             onBack = { viewModel.navigateTo(Screen.IranStockSearch) },
-                            lang = currentLanguage
+                            lang = currentLanguage,
+                            isProUser = subscription.isActive,
+                            onNavigateToSubscription = { viewModel.navigateTo(Screen.Subscription) }
                         )
                     }
 
@@ -462,7 +464,9 @@ fun RigourApp(
                                 errorMessage = errorFx,
                                 lang = currentLanguage,
                                 onBack = { viewModel.navigateTo(Screen.Forex) },
-                                onRefresh = { viewModel.refreshForexDetail() }
+                                onRefresh = { viewModel.refreshForexDetail() },
+                                isProUser = subscription.isActive,
+                                onNavigateToSubscription = { viewModel.navigateTo(Screen.Subscription) }
                             )
                         }
                     }
