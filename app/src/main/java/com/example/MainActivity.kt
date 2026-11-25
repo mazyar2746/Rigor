@@ -333,7 +333,7 @@ fun RigourApp(
 
                     NavigationBarItem(
                         selected = marketsSelected,
-                        onClick = { viewModel.navigateTo(Screen.Hub) },
+                        onClick = { viewModel.navigateTo(viewModel.lastMarketScreen) },
                         icon = { Icon(Icons.Default.TrendingUp, contentDescription = "Markets") },
                         label = { Text(StringsDictionary.get("nav_markets", currentLanguage), fontSize = 10.sp) },
                         colors = itemColors,
@@ -418,7 +418,7 @@ fun RigourApp(
                         MarketSelectorScreen(
                             onNavigateToCrypto = { viewModel.navigateTo(Screen.Markets) },
                             onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) },
-                            onNavigateToForex = { viewModel.navigateToForex() },
+                            onNavigateToForex = { viewModel.navigateTo(Screen.Forex) },
                         )
                     }
 
