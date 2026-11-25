@@ -59,6 +59,9 @@ sealed class Screen {
 }
 
 class RigourViewModel(application: Application) : AndroidViewModel(application) {
+    var lastMarketScreen: Screen = Screen.Markets
+        private set
+
 
     private val database = RigourDatabase.getInstance(application)
     private val cryptoRepository = CryptoRepository(database.favoritesDao(), database.coinCacheDao(), context = application)
