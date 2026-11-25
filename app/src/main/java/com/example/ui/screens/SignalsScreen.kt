@@ -95,7 +95,8 @@ fun SignalsScreen(
     lang: Language,
     onRefresh: () -> Unit,
     onSelectCoin: (CryptoCoin) -> Unit,
-    onNavigateToSubscription: () -> Unit
+    onNavigateToSubscription: () -> Unit,
+    onBack: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     var selectedFilter by remember { mutableStateOf(SignalFilter.ALL) }
@@ -130,6 +131,22 @@ fun SignalsScreen(
 
         if (selectedTab == 0) {
         // 1. Header Banner & Pro Accuracy Explanation Card
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(androidx.compose.material.icons.Icons.Default.ArrowBack, contentDescription = "Back", tint = RigourCyan)
+                }
+                Text(
+                    text = if (lang == Language.PERSIAN) "بازگشت به بازار" else "Back to Market",
+                    color = RigourCyan,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
         item {
             SignalsExplorationBanner(
                 isPro = subscription.isActive,

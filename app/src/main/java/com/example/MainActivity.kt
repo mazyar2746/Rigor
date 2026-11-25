@@ -529,7 +529,8 @@ fun RigourApp(
                             lang = currentLanguage,
                             onRefresh = { viewModel.computeSignals() },
                             onSelectCoin = { viewModel.selectCoin(it) },
-                            onNavigateToSubscription = { viewModel.navigateTo(Screen.Subscription) }
+                            onNavigateToSubscription = { viewModel.navigateTo(Screen.Subscription) },
+                            onBack = { viewModel.navigateTo(viewModel.lastMarketScreen) }
                         )
                     }
 
