@@ -418,7 +418,7 @@ fun RigourApp(
                         MarketSelectorScreen(
                             onNavigateToCrypto = { viewModel.navigateTo(Screen.Markets) },
                             onNavigateToIranStock = { viewModel.navigateTo(Screen.IranStockSearch) },
-                            onNavigateToForex = { viewModel.navigateTo(Screen.Forex) },
+                            onNavigateToForex = { viewModel.navigateToForex() },
                         )
                     }
 
