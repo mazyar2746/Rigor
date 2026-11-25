@@ -333,7 +333,7 @@ fun RigourApp(
 
                     NavigationBarItem(
                         selected = marketsSelected,
-                        onClick = { viewModel.navigateTo(Screen.Markets) },
+                        onClick = { viewModel.navigateTo(Screen.Hub) },
                         icon = { Icon(Icons.Default.TrendingUp, contentDescription = "Markets") },
                         label = { Text(StringsDictionary.get("nav_markets", currentLanguage), fontSize = 10.sp) },
                         colors = itemColors,
@@ -520,10 +520,6 @@ fun RigourApp(
                     }
 
                     is Screen.Signals -> {
-                        LaunchedEffect(Unit) {
-                            if (viewModel.forexSignals.value.isEmpty()) viewModel.computeForexSignals()
-                            if (viewModel.iranStockSignals.value.isEmpty()) viewModel.computeIranStockSignals()
-                        }
                         SignalsScreen(
                             signals = signals,
                             forexSignals = viewModel.forexSignals.collectAsStateWithLifecycle().value,
@@ -548,7 +544,7 @@ fun RigourApp(
                             subscription = subscription,
                             isFavorite = favoriteSymbols.contains(currentCoin.symbol),
                             onToggleFavorite = { viewModel.toggleFavorite(currentCoin.symbol) },
-                            onBack = { viewModel.navigateTo(Screen.Markets) },
+                            onBack = { viewModel.navigateTo(Screen.Hub) },
                             onNavigateToSubscription = { viewModel.navigateTo(Screen.Subscription) },
                             lang = currentLanguage
                         )
