@@ -31,7 +31,6 @@ fun MarketSelectorScreen(
     onNavigateToCrypto: () -> Unit,
     onNavigateToIranStock: () -> Unit,
     onNavigateToForex: () -> Unit,
-    onNavigateToDex: () -> Unit
 ) {
     var visible by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -139,11 +138,6 @@ fun MarketSelectorScreen(
                     modifier = Modifier.weight(1f),
                     disabled = false
                 )
-                GlassMarketCard(
-                    title = "دکس (به‌زودی)",
-                    icon = "🔗",
-                    gradient = listOf(Color(0xFF06B6D4).copy(alpha = 0.8f), Color(0xFF0891B2).copy(alpha = 0.6f)),
-                    onClick = {},
                     modifier = Modifier.weight(1f),
                     disabled = true
                 )
