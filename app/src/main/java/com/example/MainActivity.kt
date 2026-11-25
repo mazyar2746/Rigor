@@ -333,7 +333,7 @@ fun RigourApp(
 
                     NavigationBarItem(
                         selected = marketsSelected,
-                        onClick = { viewModel.navigateTo(viewModel.lastMarketScreen) },
+                        onClick = { viewModel.goToMarkets() },
                         icon = { Icon(Icons.Default.TrendingUp, contentDescription = "Markets") },
                         label = { Text(StringsDictionary.get("nav_markets", currentLanguage), fontSize = 10.sp) },
                         colors = itemColors,

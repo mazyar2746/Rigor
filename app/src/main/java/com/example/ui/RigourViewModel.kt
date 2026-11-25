@@ -432,6 +432,15 @@ class RigourViewModel(application: Application) : AndroidViewModel(application) 
 
     // --- Navigation: Forex ---
 
+    
+    fun goToMarkets() {
+        when (lastMarketScreen) {
+            is Screen.Forex -> navigateToForex()
+            is Screen.IranStockSearch -> navigateTo(Screen.IranStockSearch)
+            else -> navigateTo(Screen.Markets)
+        }
+    }
+
     fun navigateToForex() {
         _currentScreen.value = Screen.Forex
         // Load first page (10 majors) automatically

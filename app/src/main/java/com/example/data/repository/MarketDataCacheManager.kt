@@ -120,7 +120,7 @@ object MarketDataCacheManager {
 
     private fun fetchHistoryFromApi(insCode: String): List<DailyPrice>? {
         try {
-            val conn = URL("https://cdn.tsetmc.com/api/ClosingPrice/GetClosingPriceDailyList/$insCode/35").openConnection() as HttpURLConnection
+            val conn = URL("https://rigor-v339.h-nasiri3247.workers.dev/api/ClosingPrice/GetClosingPriceDailyList/$insCode/35").openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
             conn.setRequestProperty("User-Agent", "Mozilla/5.0")
             conn.connectTimeout = 8000
