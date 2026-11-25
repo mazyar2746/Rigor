@@ -138,9 +138,7 @@ fun MarketSelectorScreen(
                     modifier = Modifier.weight(1f),
                     disabled = false
                 )
-                    modifier = Modifier.weight(1f),
-                    disabled = true
-                )
+
             }
         }
     }
