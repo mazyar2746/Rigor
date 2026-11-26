@@ -210,7 +210,7 @@ fun RigourApp(
         BackHandler(enabled = true) {
         when (val screen = currentScreen) {
             is Screen.Welcome, is Screen.Hub -> {
-                (this@MainActivity).finish() // بستن برنامه در صفحه اصلی
+                (androidx.compose.ui.platform.LocalContext.current as? android.app.Activity)?.finish() // بستن برنامه در صفحه اصلی
             }
             is Screen.CoinDetail -> viewModel.goToMarkets()
             is Screen.IranStockDetail -> viewModel.navigateTo(Screen.IranStockSearch)
