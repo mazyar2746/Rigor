@@ -207,24 +207,21 @@ fun RigourApp(
     val layoutDirection = if (currentLanguage.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
 
     CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
-        BackHandler(enabled = currentScreen !is Screen.Markets) {
-            when (currentScreen) {
-                is Screen.CoinDetail -> viewModel.navigateTo(Screen.Markets)
-                is Screen.IranStockDetail -> viewModel.navigateTo(Screen.IranStockSearch)
-                is Screen.IranStockSearch -> viewModel.navigateTo(Screen.Markets)
-                is Screen.Hub -> {}
-                is Screen.Forex -> viewModel.navigateTo(Screen.Hub)
-                is Screen.ForexDetail -> viewModel.navigateTo(Screen.Forex)
-                is Screen.Dex -> viewModel.navigateTo(Screen.Hub)
-                is Screen.Welcome -> viewModel.navigateTo(Screen.Markets)
-                is Screen.Forex -> viewModel.navigateTo(Screen.Hub)
-                is Screen.Signals -> viewModel.navigateTo(Screen.Markets)
-                is Screen.Subscription -> viewModel.navigateTo(Screen.Markets)
-                is Screen.ContactUs -> viewModel.navigateTo(Screen.Settings)
-                is Screen.Settings -> viewModel.navigateTo(Screen.Markets)
-                Screen.Markets -> {}
+        BackHandler(enabled = true) {
+        when (val screen = currentScreen) {
+            is Screen.Welcome, is Screen.Hub -> {
+                (this@MainActivity).finish() // بستن برنامه در صفحه اصلی
             }
+            is Screen.CoinDetail -> viewModel.goToMarkets()
+            is Screen.IranStockDetail -> viewModel.navigateTo(Screen.IranStockSearch)
+            is Screen.IranStockSearch -> viewModel.goToMarkets()
+            is Screen.ForexDetail -> viewModel.navigateTo(Screen.Forex)
+            is Screen.Forex, is Screen.Signals, is Screen.Settings, is Screen.Subscription, is Screen.ContactUs -> {
+                viewModel.goToMarkets() // برگشت به آخرین بازار (فارکس، بورس یا کریپتو)
+            }
+            else -> viewModel.navigateTo(Screen.Hub)
         }
+    }
 
         Scaffold(
             topBar = {
