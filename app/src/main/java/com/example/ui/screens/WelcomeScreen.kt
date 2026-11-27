@@ -59,6 +59,7 @@ import com.example.ui.theme.RigourSurfaceVariant
 import androidx.compose.animation.core.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.getValue
 
 @Composable
 fun WelcomeScreen(
