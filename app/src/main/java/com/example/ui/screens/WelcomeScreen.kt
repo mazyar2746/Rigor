@@ -81,28 +81,6 @@ fun WelcomeScreen(
                 .fillMaxWidth()
                 .height(210.dp)
         ) {
-
-    // انیمیشن درخشان برای لوگو
-    val infiniteTransition = rememberInfiniteTransition(label = "logo_glow")
-    val logoScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "logo_scale"
-    )
-    val logoAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1500),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "logo_alpha"
-    )
-
             Image(
                 painter = painterResource(id = R.drawable.rigour_hero),
                 contentDescription = "Rigor Crypto Dashboard Banner",
