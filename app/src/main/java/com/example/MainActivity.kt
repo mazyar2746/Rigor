@@ -176,6 +176,7 @@ fun RigourApp(
     onBazaarSubscribe: () -> Unit = {}
 ) {
     val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val currentLanguage by viewModel.currentLanguage.collectAsStateWithLifecycle()
     val filteredCoins by viewModel.filteredCoins.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
@@ -210,14 +211,14 @@ fun RigourApp(
         BackHandler(enabled = true) {
         when (val screen = currentScreen) {
             is Screen.Welcome, is Screen.Hub -> {
-                (androidx.compose.ui.platform.LocalContext.current as? android.app.Activity)?.finish() // بستن برنامه در صفحه اصلی
+                (context as? android.app.Activity)?.finish()
             }
             is Screen.CoinDetail -> viewModel.goToMarkets()
             is Screen.IranStockDetail -> viewModel.navigateTo(Screen.IranStockSearch)
             is Screen.IranStockSearch -> viewModel.goToMarkets()
             is Screen.ForexDetail -> viewModel.navigateTo(Screen.Forex)
             is Screen.Forex, is Screen.Signals, is Screen.Settings, is Screen.Subscription, is Screen.ContactUs -> {
-                viewModel.goToMarkets() // برگشت به آخرین بازار (فارکس، بورس یا کریپتو)
+                viewModel.goToMarkets()
             }
             else -> viewModel.navigateTo(Screen.Hub)
         }
