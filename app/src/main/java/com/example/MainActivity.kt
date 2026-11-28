@@ -103,7 +103,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        com.example.util.CrashHandler.init(this)
+        // com.example.util.CrashHandler.init(this) // موقتاً غیرفعال شد برای تست کرش
         com.example.ui.components.UpdateChecker.checkForUpdates(this)
         enableEdgeToEdge()
 
